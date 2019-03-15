@@ -159,10 +159,10 @@
 /**
  * TEVO Tarantula Custom PID Settings - Stock Heatbed
  */
-#define  bed_Kp 161.14
-#define  bed_Ki 10.81
-#define  bed_Kd 600.64
-// FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
+#define  bed_Kp 211.14
+#define  bed_Ki 15.72
+#define  bed_Kd 709.18
+// FIND YOUR OWN: "M303 E-1 C8 S70" to run autotune on the bed at 70 degreesC for 8 cycles.
 // More info here: http://reprap.org/wiki/PID_Tuning
 
 /**
