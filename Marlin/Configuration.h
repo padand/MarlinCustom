@@ -1562,6 +1562,20 @@
  *    +-------------->X     +-------------->X     +-------------->Y
  *     XY_SKEW_FACTOR        XZ_SKEW_FACTOR        YZ_SKEW_FACTOR
  */
+
+/*
+Correction was made by measuring the B-A-D angles and calculating AC and BD values based on them
+The angles conidered for each plane were:
+
+XY: 90.1625
+XZ: 90.1
+ZY: 90
+
+Diagonals math:
+AC = 2*AD*SIN(0.5*(180-angle_BAD)*PI/180)
+BD = 2*AD*COS(0.5*(180-angle_BAD)*PI/180)
+*/
+
 #define SKEW_CORRECTION
 
 #if ENABLED(SKEW_CORRECTION)
