@@ -94,7 +94,7 @@
 //#define LINEAR
 //#define BILINEAR
 //#define UBL
-#define MANUAL
+//#define MANUAL
 
 /**
  * Z-Probe offset from nozzle (https://github.com/JimBrown/MarlinTarantula/wiki/How-to-determine-your-Z-Probe-offset)
@@ -150,9 +150,9 @@
 /**
  * TEVO Tarantula Custom PID Settings - Stock Hotend
  */
-#define  hot_Kp 47.32
-#define  hot_Ki 6.08
-#define  hot_Kd 92.06
+#define  hot_Kp 40.13
+#define  hot_Ki 5.27
+#define  hot_Kd 76.43
 // FIND YOUR OWN: "M303 E0 C8 S235" to run autotune on the hotend at 235 degreesC for 8 cycles.
 // More info here: http://reprap.org/wiki/PID_Tuning
 
@@ -920,9 +920,9 @@
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
  */
 #if ENABLED(DUAL_EXTRUDER)
-  #define DEFAULT_MAX_ACCELERATION      { 3000,  3000, 100, 10000, 10000 }
+  #define DEFAULT_MAX_ACCELERATION      { 3000,  3000, 15, 10000, 10000 }
 #else
-  #define DEFAULT_MAX_ACCELERATION      { 3000,  3000, 100, 10000 }
+  #define DEFAULT_MAX_ACCELERATION      { 3000,  3000, 15, 10000 }
 #endif
 
 /**
@@ -946,8 +946,8 @@
  * value set here, it may happen instantaneously.
  */
 #define DEFAULT_XJERK                  4.0
-#define DEFAULT_YJERK                  7.0
-#define DEFAULT_ZJERK                  0.2
+#define DEFAULT_YJERK                  4.0
+#define DEFAULT_ZJERK                  0
 #define DEFAULT_EJERK                  2.5
 
 /**
