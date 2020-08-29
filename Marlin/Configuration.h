@@ -73,7 +73,7 @@
  * Z Axis steps per mm (Default for stock lead screw is 1600)
  * If you install a lead screw with a different pitch and/or lead, change this
  */
-#define Z_STEPS      1600 // Stock lead screw
+#define Z_STEPS      2560 // Stock lead screw
 
 /**
  * Z-Probe type (must be none or one of them)
@@ -920,9 +920,9 @@
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
  */
 #if ENABLED(DUAL_EXTRUDER)
-  #define DEFAULT_MAX_ACCELERATION      { 3000,  3000, 15, 10000, 10000 }
+  #define DEFAULT_MAX_ACCELERATION      { 3000,  3000, 20, 10000, 10000 }
 #else
-  #define DEFAULT_MAX_ACCELERATION      { 3000,  3000, 15, 10000 }
+  #define DEFAULT_MAX_ACCELERATION      { 3000,  3000, 20, 10000 }
 #endif
 
 /**
