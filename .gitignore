@@ -147,3 +147,6 @@ CMakeListsPrivate.txt
 
 #CLion
 cmake-build-*
+
+#Build folder
+build_path/
