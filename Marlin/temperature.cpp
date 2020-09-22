@@ -149,6 +149,9 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
 
 #if ENABLED(BABYSTEPPING)
   volatile int Temperature::babystepsTodo[XYZ] = { 0 };
+  #if HAS_Z2_ENABLE
+    volatile int Temperature::babystepsTodoZlr[Zlr] = { 0 };
+  #endif
 #endif
 
 #if WATCH_HOTENDS
@@ -2293,6 +2296,16 @@ void Temperature::isr() {
                     else babystepsTodo[axis]++;
       }
     }
+    #if HAS_Z2_ENABLE
+      LOOP_Zlr(axis) {
+        const int curTodo = babystepsTodoZlr[axis]; // get rid of volatile for performance
+        if (curTodo) {
+          stepper.babystepZlr((AxisZlrEnum)axis, curTodo > 0);
+          if (curTodo > 0) babystepsTodoZlr[axis]--;
+                      else babystepsTodoZlr[axis]++;
+        }
+      }
+    #endif
   #endif // BABYSTEPPING
 
   // Poll endstops state, if required
