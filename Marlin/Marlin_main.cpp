@@ -9996,6 +9996,7 @@ inline void gcode_M226() {
   /**
    * M290: Babystepping
    */
+  static const uint8_t configured_microsteps[] = MICROSTEP_MODES;
   inline void gcode_M290() {
     #if ENABLED(BABYSTEP_XY)
       for (uint8_t a = X_AXIS; a <= Z_AXIS; a++)
@@ -10015,30 +10016,19 @@ inline void gcode_M226() {
         #endif
       }
       #if HAS_Z2_ENABLE
-        const int16_t microsteps = 16;
-        if (parser.seen('H')) {
+        if (parser.seenval('L')) {
+          const int16_t steps = parser.value_int();
           SERIAL_ECHO_START();
-          SERIAL_ECHO("Babystep left up");
+          SERIAL_ECHOPAIR("Babystep left: ", steps);
           SERIAL_EOL();
-          thermalManager.babystep_Zlr(Zl_AXIS, microsteps);
+          thermalManager.babystep_Zlr(Zl_AXIS, steps * configured_microsteps[Z_AXIS]);
         }
-        if (parser.seen('J')) {
+        if (parser.seenval('R')) {
+          const int16_t steps = parser.value_int();
           SERIAL_ECHO_START();
-          SERIAL_ECHO("Babystep left down");
+          SERIAL_ECHOPAIR("Babystep right: ", steps);
           SERIAL_EOL();
-          thermalManager.babystep_Zlr(Zl_AXIS, -microsteps);
-        }
-        if (parser.seen('K')) {
-          SERIAL_ECHO_START();
-          SERIAL_ECHO("Babystep right up");
-          SERIAL_EOL();
-          thermalManager.babystep_Zlr(Zr_AXIS, microsteps);
-        }
-        if (parser.seen('L')) {
-          SERIAL_ECHO_START();
-          SERIAL_ECHO("Babystep right down");
-          SERIAL_EOL();
-          thermalManager.babystep_Zlr(Zr_AXIS, -microsteps);
+          thermalManager.babystep_Zlr(Zr_AXIS, steps * configured_microsteps[Z_AXIS]);
         }
       #endif
     #endif
