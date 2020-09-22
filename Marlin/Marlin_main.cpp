@@ -10014,6 +10014,33 @@ inline void gcode_M226() {
           if (!parser.seen('P') || parser.value_bool()) mod_zprobe_zoffset(offs);
         #endif
       }
+      #if HAS_Z2_ENABLE
+        const int16_t microsteps = 16;
+        if (parser.seen('H')) {
+          SERIAL_ECHO_START();
+          SERIAL_ECHO("Babystep left up");
+          SERIAL_EOL();
+          thermalManager.babystep_Zlr(Zl_AXIS, microsteps);
+        }
+        if (parser.seen('J')) {
+          SERIAL_ECHO_START();
+          SERIAL_ECHO("Babystep left down");
+          SERIAL_EOL();
+          thermalManager.babystep_Zlr(Zl_AXIS, -microsteps);
+        }
+        if (parser.seen('K')) {
+          SERIAL_ECHO_START();
+          SERIAL_ECHO("Babystep right up");
+          SERIAL_EOL();
+          thermalManager.babystep_Zlr(Zr_AXIS, microsteps);
+        }
+        if (parser.seen('L')) {
+          SERIAL_ECHO_START();
+          SERIAL_ECHO("Babystep right down");
+          SERIAL_EOL();
+          thermalManager.babystep_Zlr(Zr_AXIS, -microsteps);
+        }
+      #endif
     #endif
   }
 

@@ -168,7 +168,10 @@ class Temperature {
     #endif
 
     #if ENABLED(BABYSTEPPING)
-      static volatile int babystepsTodo[3];
+      static volatile int babystepsTodo[XYZ];
+      #if HAS_Z2_ENABLE
+        static volatile int babystepsTodoZlr[Zlr];
+      #endif
     #endif
 
     #if ENABLED(PREVENT_COLD_EXTRUSION)
@@ -535,6 +538,14 @@ class Temperature {
           #endif
         }
       }
+
+      #if HAS_Z2_ENABLE
+        static void babystep_Zlr(const AxisZlrEnum axis, const int16_t distance) {
+          if (TEST(axis_known_position, Z_AXIS)) {
+            babystepsTodoZlr[axis] += distance;
+          }
+        }
+      #endif
 
     #endif // BABYSTEPPING
 

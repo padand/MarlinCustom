@@ -24,6 +24,7 @@
 #define MACROS_H
 
 #define XYZ   3
+#define Zlr   2
 #define XYZE  4
 #define ABC   3
 #define ABCD  4
