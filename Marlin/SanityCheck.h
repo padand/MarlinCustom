@@ -481,6 +481,19 @@ static_assert(X_MAX_LENGTH >= X_BED_SIZE && Y_MAX_LENGTH >= Y_BED_SIZE,
 #endif
 
 /**
+ * Z step correction
+ */
+#if ENABLED(Z_STEP_CORRECTION)
+  #if DISABLED(BABYSTEPPING)
+    #error "Z_STEP_CORRECTION requires BABYSTEPPING"
+  #elif DISABLED(Z_DUAL_STEPPER_DRIVERS)
+    #error "Z_STEP_CORRECTION currently works with Z_DUAL_STEPPER_DRIVERS only"
+  #elif ENABLED(NANODLP_Z_SYNC)
+    #error "Z_STEP_CORRECTION compatibility with NANODLP_Z_SYNC is uncertain"
+  #endif
+#endif
+
+/**
  * Filament Runout needs one or more pins and either SD Support or Auto print start detection
  */
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
