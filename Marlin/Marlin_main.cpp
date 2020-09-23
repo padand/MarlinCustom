@@ -3323,6 +3323,12 @@ static void homeaxis(const AxisEnum axis) {
 
 #endif
 
+#if ENABLED(Z_STEP_CORRECTION)
+  inline void apply_Z_correction() {
+    SERIAL_ECHOLNPGM("Z correction");
+  }
+#endif
+
 /**
  * ***************************************************************************
  * ***************************** G-CODE HANDLING *****************************
@@ -3447,6 +3453,13 @@ inline void gcode_G0_G1(
       if (_MOVE_SYNC) {
         planner.synchronize();
         SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
+      }
+    #endif
+
+    #if ENABLED(Z_STEP_CORRECTION)
+      if (parser.seenval('Z')){
+        planner.synchronize();
+        apply_Z_correction();
       }
     #endif
   }
@@ -4432,6 +4445,12 @@ inline void gcode_G28(const bool always_home_all) {
     #endif
     if (_HOME_SYNC)
       SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
+  #endif
+
+  #if ENABLED(Z_STEP_CORRECTION)
+    if (home_all || homeZ) {
+      apply_Z_correction();
+    }
   #endif
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)

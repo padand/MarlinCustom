@@ -206,6 +206,12 @@
  * Warning: Does not respect endstops!
  */
 #define BABYSTEPPING
+/**
+ * Highly experimental !!!
+ * Enable this to activate the Z correction algorithm
+ * Requires BABYSTEPPING to be enabled and dual Z motors on separate drivers
+ */
+#define Z_STEP_CORRECTION
 
 /**
  * Extra movement of X axis. Can help with probing more of the bed.
