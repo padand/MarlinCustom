@@ -260,6 +260,7 @@
 #include "ultralcd.h"
 #include "planner.h"
 #include "stepper.h"
+#include "zcor.h"
 #include "endstops.h"
 #include "temperature.h"
 #include "cardreader.h"
@@ -3323,12 +3324,6 @@ static void homeaxis(const AxisEnum axis) {
 
 #endif
 
-#if ENABLED(Z_STEP_CORRECTION)
-  inline void apply_Z_correction() {
-    SERIAL_ECHOLNPGM("Z correction");
-  }
-#endif
-
 /**
  * ***************************************************************************
  * ***************************** G-CODE HANDLING *****************************
@@ -3459,7 +3454,7 @@ inline void gcode_G0_G1(
     #if ENABLED(Z_STEP_CORRECTION)
       if (parser.seenval('Z')){
         planner.synchronize();
-        apply_Z_correction();
+        zcor.correct();
       }
     #endif
   }
@@ -4449,7 +4444,7 @@ inline void gcode_G28(const bool always_home_all) {
 
   #if ENABLED(Z_STEP_CORRECTION)
     if (home_all || homeZ) {
-      apply_Z_correction();
+      zcor.reset();
     }
   #endif
 
