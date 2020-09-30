@@ -210,8 +210,29 @@
  * Highly experimental !!!
  * Enable this to activate the Z correction algorithm
  * Requires BABYSTEPPING to be enabled and dual Z motors on separate drivers
+ * Correction coefficients:
+ * D = midline (average sine value)
+ * A = amplitude (sinePeak - D)
+ * B = 2 * PI / sinePeriod (sinePeriod = start-end; usually matches thread pitch)
+ * C = -1 * B * sinePeriodStart (the time point where the period starts, situated on the midline)
+ * 
+ * period start
+ * |     
+ * |     period end
+ * |     |
+ * |     |
+ *   _     _     ___peak
+ *  / \   / \   /   _________midline
+ * /   \_/   \_/
+ *
  */
 #define Z_STEP_CORRECTION
+#if ENABLED(Z_STEP_CORRECTION)
+  #define ZCOR_ZR_A  0.012
+  #define ZCOR_ZR_B  5.026548
+  #define ZCOR_ZR_C -1.759292
+  #define ZCOR_ZR_D  0.018
+#endif
 
 /**
  * Extra movement of X axis. Can help with probing more of the bed.

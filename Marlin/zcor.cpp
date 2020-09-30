@@ -8,7 +8,12 @@ Zcor zcor; // singleton
 void Zcor::reset(){
     SERIAL_ECHOLNPGM("Z correction reset");
 };
-void Zcor::correct(){
-    SERIAL_ECHOLNPGM("Z correction correct");
+void Zcor::correct(const float height){
+    SERIAL_ECHOLNPAIR("Z correction correct ", height);
 };
 
+// private:
+
+float Zcor::correctionNeededZr(const float height) {
+    return ZCOR_ZR_A * sin(ZCOR_ZR_B * height * ZCOR_ZR_C) + ZCOR_ZR_D;
+}

@@ -3454,7 +3454,7 @@ inline void gcode_G0_G1(
     #if ENABLED(Z_STEP_CORRECTION)
       if (parser.seenval('Z')){
         planner.synchronize();
-        zcor.correct();
+        zcor.correct(current_position[Z_AXIS]);
       }
     #endif
   }
