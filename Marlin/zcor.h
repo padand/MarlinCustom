@@ -4,7 +4,10 @@
 class Zcor {
     public:
         static void reset();
-        static void correct();
+        static void correct(const float height);
+
+    private:
+        static float correctionNeededZr(const float height);
 };
 
 extern Zcor zcor;
