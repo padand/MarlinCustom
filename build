@@ -3,5 +3,5 @@
 /media/h/storage/Programs/arduino-1.8.13/arduino \
 --verify \
 --board arduino:avr:mega:cpu=atmega2560 \
---pref build.path=/media/h/storage/git/MarlinTarantula/build_path \
-/media/h/storage/git/MarlinTarantula/Marlin/Marlin.ino
+--pref build.path=/media/h/storage/workspace/git/MarlinTarantula/build_path \
+/media/h/storage/workspace/git/MarlinTarantula/Marlin/Marlin.ino
