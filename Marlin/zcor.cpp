@@ -7,12 +7,11 @@ Zcor zcor; // singleton
 
 void Zcor::reset(){
     SERIAL_ECHOLNPGM("Z correction reset");
-    thermalManager.babystep_Zlr(Zr_AXIS, currentCorrectionSteps[Zr_AXIS] * int(-1));
-    currentCorrectionSteps[Zr_AXIS] = 0;
+    correct(0);
 };
 void Zcor::correct(const float height){
     SERIAL_ECHOLNPAIR("Z correction correct at height ", height);
-    const int csZr = correctionStepsZr(height) * configured_microsteps[Z_AXIS];
+    const int csZr = height == 0 ? 0 : correctionStepsZr(height) * configured_microsteps[Z_AXIS];
     thermalManager.babystep_Zlr(Zr_AXIS, csZr - currentCorrectionSteps[Zr_AXIS]);
     currentCorrectionSteps[Zr_AXIS] = csZr;
 };
@@ -25,6 +24,6 @@ int Zcor::currentCorrectionSteps[Zlr] = { 0 };
 
 int Zcor::correctionStepsZr(const float height) {
     const double estimatedError = ZCOR_ZR_A * sin(ZCOR_ZR_B * double(height) + ZCOR_ZR_C) + ZCOR_ZR_D;
-    SERIAL_ECHOLN(String(estimatedError, 4));
+    //SERIAL_ECHOLN(String(estimatedError, 4));
     return int(LROUND(estimatedError/Z_STEP_CORRECTION_UNIT));
 }
