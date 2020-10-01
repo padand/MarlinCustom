@@ -7,7 +7,7 @@ class Zcor {
         static void correct(const float height);
 
     private:
-        static float correctionNeededZr(const float height);
+        static int correctionStepsZr(const float height);
 };
 
 extern Zcor zcor;

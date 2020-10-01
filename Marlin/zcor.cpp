@@ -10,10 +10,14 @@ void Zcor::reset(){
 };
 void Zcor::correct(const float height){
     SERIAL_ECHOLNPAIR("Z correction correct ", height);
+    const int c = correctionStepsZr(height);
+    SERIAL_ECHOLNPAIR("Z correction correct Zr ", c);
 };
 
 // private:
 
-float Zcor::correctionNeededZr(const float height) {
-    return ZCOR_ZR_A * sin(ZCOR_ZR_B * height * ZCOR_ZR_C) + ZCOR_ZR_D;
+int Zcor::correctionStepsZr(const float height) {
+    const double estimatedError = ZCOR_ZR_A * sin(ZCOR_ZR_B * double(height) + ZCOR_ZR_C) + ZCOR_ZR_D;
+    SERIAL_ECHOLN(String(estimatedError, 4));
+    return int(LROUND(estimatedError/Z_STEP_CORRECTION_UNIT));
 }
