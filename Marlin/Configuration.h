@@ -216,15 +216,31 @@
  * B = 2 * PI / sinePeriod (sinePeriod = start-end; usually matches thread pitch)
  * C = -1 * B * sinePeriodStart (the time point where the period starts, situated on the midline)
  * 
- * period start
- * |     
- * |     period end
- * |     |
- * |     |
- *   _     _     ___peak
- *  / \   / \   /   _________midline
- * /   \_/   \_/
- *
+ *      error
+ *       ^
+ *       |   period start                            
+ *       |   |                                       
+ *       |   |     period end                        
+ *       |   |     |                                 
+ *       |   |     |                                 
+ *  0.03_|   | _   | _     ___peak                   
+ *  0.02_|   |/ \  |/ \   /   _________midline       
+ *  0.01_|   /   \_/   \_/                           
+ *     0_|  |
+ *       ----------------------------------->  height
+ *          |    
+ *          0
+ * 
+ * The sine line is plotted by taking precise measurements:
+ * - start from height=0, in small increments (ex 0.05)
+ * - height will the abscissa
+ * - the ordinate will be the error, calculated as a difference between
+ *   the expected height and the measured height
+ * - make sure the increments are multiples of a full step,
+ *   halfstepping can introduce errors
+ * - make sure to measure for at least 3 full periods
+ * - make sure that the waves resemble in period and amplitude
+ * 
  */
 #define Z_STEP_CORRECTION
 #if ENABLED(Z_STEP_CORRECTION)
