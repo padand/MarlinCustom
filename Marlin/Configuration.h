@@ -244,9 +244,12 @@
  */
 #define Z_STEP_CORRECTION
 #if ENABLED(Z_STEP_CORRECTION)
+  // the smallest correction unit, usually calculated as thread_pitch / motor_steps
+  #define Z_STEP_CORRECTION_UNIT 0.00625
+  // sine wave coefficients
   #define ZCOR_ZR_A  0.012
-  #define ZCOR_ZR_B  5.026548
-  #define ZCOR_ZR_C -1.759292
+  #define ZCOR_ZR_B  5.026548245743669
+  #define ZCOR_ZR_C -1.759291886010284
   #define ZCOR_ZR_D  0.018
 #endif
 
