@@ -47,7 +47,8 @@
 
 //#define MOTHERBOARD BOARD_MKS_GEN_13        // Original controller board with built in stepper drivers. Works with MKS BASE 1.3, 1.4
 //#define MOTHERBOARD BOARD_MKS_BASE_15       // MKS v1.5 with Allegro A4982 stepper drivers
-#define MOTHERBOARD BOARD_MKS_BASE_HEROIC   // MKS BASE 1.0 with Heroic HR4982 stepper drivers
+//#define MOTHERBOARD BOARD_MKS_BASE_HEROIC   // MKS BASE 1.0 with Heroic HR4982 stepper drivers
+#define MOTHERBOARD BOARD_MKS_BASE_14_CUSTOM
 //#define MOTHERBOARD BOARD_MKS_GEN_L         // Newer controller board with replacable stepper drivers
 
 /**
@@ -206,50 +207,16 @@
  * Warning: Does not respect endstops!
  */
 #define BABYSTEPPING
+
 /**
  * Highly experimental !!!
  * Enable this to activate the Z correction algorithm
  * Requires BABYSTEPPING to be enabled and dual Z motors on separate drivers
- * Correction coefficients:
- * D = midline (average sine value)
- * A = amplitude (sinePeak - D)
- * B = 2 * PI / sinePeriod (sinePeriod = start-end; usually matches thread pitch)
- * C = -1 * B * sinePeriodStart (the time point where the period starts, situated on the midline)
- * 
- *      error
- *       ^
- *       |   period start                            
- *       |   |                                       
- *       |   |     period end                        
- *       |   |     |                                 
- *       |   |     |                                 
- *  0.03_|   | _   | _     ___peak                   
- *  0.02_|   |/ \  |/ \   /   _________midline       
- *  0.01_|   /   \_/   \_/                           
- *     0_|  |
- *       ----------------------------------->  height
- *          |    
- *          0
- * 
- * The sine line is plotted by taking precise measurements:
- * - start from height=0, in small increments (ex 0.05)
- * - height will the abscissa
- * - the ordinate will be the error, calculated as a difference between
- *   the expected height and the measured height
- * - make sure the increments are multiples of a full step,
- *   halfstepping can introduce errors
- * - make sure to measure for at least 3 full periods
- * - make sure that the waves resemble in period and amplitude
- * 
  */
-//#define Z_STEP_CORRECTION
-// the smallest correction unit, usually calculated as thread_pitch / motor_steps
-#define Z_STEP_CORRECTION_UNIT 0.00625
-// sine wave coefficients
-#define ZCOR_ZR_A  0.012
-#define ZCOR_ZR_B  5.026548245743669
-#define ZCOR_ZR_C -1.759291886010284
-#define ZCOR_ZR_D  0.018
+#define Z_STEP_CORRECTION
+#if ENABLED(Z_STEP_CORRECTION)
+  #define ZCOR_UNIT 0.00625
+#endif
 
 /**
  * Extra movement of X axis. Can help with probing more of the bed.

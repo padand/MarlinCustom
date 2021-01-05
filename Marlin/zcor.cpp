@@ -5,6 +5,12 @@ Zcor zcor; // singleton
 
 // public:
 
+void Zcor::init(){
+    SERIAL_ECHOLNPGM("Z correction init");
+    spi.init();
+    OUT_WRITE(SS_PIN, HIGH);
+    OUT_WRITE(ZCOR_SS_PIN, HIGH);
+};
 void Zcor::reset(){
     SERIAL_ECHOLNPGM("Z correction reset");
     correct(0);
@@ -15,6 +21,12 @@ void Zcor::correct(const float height){
     thermalManager.babystep_Zlr(Zr_AXIS, csZr - currentCorrectionSteps[Zr_AXIS]);
     currentCorrectionSteps[Zr_AXIS] = csZr;
 };
+void Zcor::test() {
+    SERIAL_ECHOLNPGM("Z correction test");
+    WRITE(ZCOR_SS_PIN, LOW); // enable spi
+    safe_delay(10000);
+    WRITE(ZCOR_SS_PIN, HIGH); // disable spi
+}
 
 // private:
 
@@ -23,7 +35,7 @@ const uint8_t Zcor::configured_microsteps[] = MICROSTEP_MODES;
 int Zcor::currentCorrectionSteps[Zlr] = { 0 };
 
 int Zcor::correctionStepsZr(const float height) {
-    const double estimatedError = ZCOR_ZR_A * sin(ZCOR_ZR_B * double(height) + ZCOR_ZR_C) + ZCOR_ZR_D;
-    //SERIAL_ECHOLN(String(estimatedError, 4));
-    return int(LROUND(estimatedError/Z_STEP_CORRECTION_UNIT));
+    return 0;
 }
+
+SPI<MISO_PIN, MOSI_PIN, SCK_PIN> Zcor::spi;
