@@ -6886,6 +6886,15 @@ void report_xyz_from_stepper_position() {
 #endif // SPINDLE_LASER_ENABLE
 
 /**
+ * M13: Z step correction
+ */
+#if ENABLED(Z_STEP_CORRECTION)
+  inline void gcode_M13() {
+    zcor.test();
+  }
+#endif
+
+/**
  * M17: Enable power on all stepper motors
  */
 inline void gcode_M17() {
@@ -12762,6 +12771,10 @@ void process_parsed_command() {
         case 5: gcode_M5(); break;                                // M5: Laser/Spindle OFF
       #endif
 
+      #if ENABLED(Z_STEP_CORRECTION)
+        case 13: gcode_M13(); break;
+      #endif
+
       case 17: gcode_M17(); break;                                // M17: Enable all steppers
 
       #if ENABLED(SDSUPPORT)
@@ -15138,6 +15151,10 @@ void setup() {
     case_light_on = CASE_LIGHT_DEFAULT_ON;
     case_light_brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
     update_case_light();
+  #endif
+
+  #if ENABLED(Z_STEP_CORRECTION)
+    zcor.init();
   #endif
 
   #if ENABLED(SPINDLE_LASER_ENABLE)
