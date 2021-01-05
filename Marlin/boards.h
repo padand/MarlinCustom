@@ -53,6 +53,8 @@
 // RAMPS Derivatives - ATmega1280, ATmega2560
 //
 
+#define BOARD_MKS_BASE_14_CUSTOM 13   // MKS BASE 1.4 with Heroic HR4982 stepper drivers and reassigned pins
+
 #define BOARD_3DRAG             77    // 3Drag Controller
 #define BOARD_K8200             78    // Velleman K8200 Controller (derived from 3Drag Controller)
 #define BOARD_K8400             79    // Velleman K8400 Controller (derived from 3Drag Controller)
