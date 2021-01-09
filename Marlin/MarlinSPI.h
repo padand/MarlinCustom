@@ -51,6 +51,11 @@ class SPI<MISO_PIN, MOSI_PIN, SCK_PIN> {
       while (!TEST(SPSR, SPIF)) { /* nada */ }
       return SPDR;
     }
+    FORCE_INLINE static uint8_t transfer(uint8_t data) {
+      SPDR = data;
+      while (!TEST(SPSR, SPIF)) { /* nada */ }
+      return SPDR;
+    }
 
 };
 

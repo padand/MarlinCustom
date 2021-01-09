@@ -24,6 +24,7 @@ void Zcor::correct(const float height){
 void Zcor::test() {
     SERIAL_ECHOLNPGM("Z correction test");
     WRITE(ZCOR_SS_PIN, LOW); // enable spi
+    spi.transfer('0');
     safe_delay(10000);
     WRITE(ZCOR_SS_PIN, HIGH); // disable spi
 }

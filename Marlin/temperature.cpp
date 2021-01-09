@@ -35,6 +35,7 @@
 #include "endstops.h"
 
 #if ENABLED(HEATER_0_USES_MAX6675)
+// CLUE
   #include "MarlinSPI.h"
 #endif
 
@@ -1030,6 +1031,7 @@ float Temperature::analog_to_celsius_hotend(const int raw, const uint8_t e) {
  */
 void Temperature::calculate_celsius_temperatures() {
   #if ENABLED(HEATER_0_USES_MAX6675)
+  // CLUE
     current_temperature_raw[0] = read_max6675();
   #endif
   HOTEND_LOOP() current_temperature[e] = analog_to_celsius_hotend(current_temperature_raw[e], e);
@@ -1085,6 +1087,7 @@ void Temperature::calculate_celsius_temperatures() {
   #ifndef MAX6675_DO_PIN
     #define MAX6675_DO_PIN MISO_PIN
   #endif
+  // CLUE
   SPI<MAX6675_DO_PIN, MOSI_PIN, MAX6675_SCK_PIN> max6675_spi;
 #endif
 
@@ -1150,6 +1153,8 @@ void Temperature::init() {
   #endif
 
   #if ENABLED(HEATER_0_USES_MAX6675)
+
+  // CLUE
 
     OUT_WRITE(SCK_PIN, LOW);
     OUT_WRITE(MOSI_PIN, HIGH);
@@ -1594,6 +1599,8 @@ void Temperature::disable_all_heaters() {
       #endif
         , PRSPI);
     SPCR = _BV(MSTR) | _BV(SPE) | MAX6675_SPEED_BITS;
+
+    // CLUE
 
     WRITE(MAX6675_SS, 0); // enable TT_MAX6675
 
