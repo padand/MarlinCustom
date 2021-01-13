@@ -51,6 +51,27 @@ class SPI<MISO_PIN, MOSI_PIN, SCK_PIN> {
       while (!TEST(SPSR, SPIF)) { /* nada */ }
       return SPDR;
     }
+    FORCE_INLINE static uint8_t transfer(uint8_t data) {
+      SPDR = data;
+      while (!TEST(SPSR, SPIF)) { /* nada */ }
+      return SPDR;
+    }
+    // polls a request waiting for an expected response
+    // returns true if the response arrived in time
+    static uint8_t waitResponse(uint8_t poll, uint8_t expected, unsigned long timeout) {
+      uint8_t res;
+      timeout += millis();
+      while(timeout > millis()) {
+        res = transfer(poll);
+        // Serial.println(res);
+        if(res==expected) {
+          return true;
+        } else {
+          safe_delay(50);
+        }
+      }
+      return false;
+    }
 
 };
 
