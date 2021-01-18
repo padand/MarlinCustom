@@ -3,6 +3,10 @@
 
 Zcor zcor; // singleton
 
+#ifndef ZCOR_SS_PIN
+    #define ZCOR_SS_PIN 0
+#endif
+
 // public:
 
 void Zcor::init(){

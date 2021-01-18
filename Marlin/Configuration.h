@@ -213,7 +213,7 @@
  * Enable this to activate the Z correction algorithm
  * Requires BABYSTEPPING to be enabled and dual Z motors on separate drivers
  */
-#define Z_STEP_CORRECTION
+//#define Z_STEP_CORRECTION
 #if ENABLED(Z_STEP_CORRECTION)
   #define ZCOR_UNIT 0.00625
 #endif
