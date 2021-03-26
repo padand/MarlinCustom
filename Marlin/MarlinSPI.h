@@ -62,12 +62,13 @@ class SPI<MISO_PIN, MOSI_PIN, SCK_PIN> {
       uint8_t res;
       timeout += millis();
       while(timeout > millis()) {
+        //SERIAL_ECHOLNPAIR("poll: ", poll);
         res = transfer(poll);
-        // Serial.println(res);
+        //SERIAL_ECHOLNPAIR("res:  ", res);
         if(res==expected) {
           return true;
         } else {
-          safe_delay(50);
+          delay(200);
         }
       }
       return false;

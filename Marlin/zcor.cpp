@@ -7,6 +7,10 @@ Zcor zcor; // singleton
     #define ZCOR_SS_PIN 0
 #endif
 
+#ifndef ZCOR_SPI_TIMEOUT
+    #define ZCOR_SPI_TIMEOUT 1500
+#endif
+
 // public:
 
 void Zcor::init(){
@@ -25,8 +29,7 @@ void Zcor::correct(const float height){
     thermalManager.babystep_Zlr(Zr_AXIS, csZr - currentCorrectionSteps[Zr_AXIS]);
     currentCorrectionSteps[Zr_AXIS] = csZr;
 };
-void Zcor::test() {
-    SERIAL_ECHOLNPGM("Z correction test");
+bool Zcor::readPosition(const uint8_t axis) {
     CBI(
       #ifdef PRR
         PRR
@@ -35,26 +38,25 @@ void Zcor::test() {
       #endif
         , PRSPI);
     SPCR = _BV(MSTR) | _BV(SPE) | _BV(SPR0);
+    WRITE(SS_PIN, HIGH);
     WRITE(ZCOR_SS_PIN, LOW); // enable spi
-    safe_delay(100);
-    SERIAL_ECHOLNPGM("Request reset");
-    if(!spi.waitResponse(REQUEST_RESET,RESPONSE_RESET,1000)) {
-        SERIAL_ECHOLNPGM("Reset timeout");
-        return;
-    }
-    SERIAL_ECHOLNPGM("Reset ok");
+    delay(100);
     // Request position pos continuously
-    uint8_t pos = 1;
     SERIAL_ECHOLNPGM("Request position");
-    spi.transfer(REQUEST_POSITION_READ(pos));
-    if(!spi.waitResponse(REQUEST_POSITION_STATUS,RESPONSE_POSITION_STATUS_OK(pos),5000)) {
-        SERIAL_ECHOLNPGM("Position aquire timeout");
-        return;
+    spi.transfer(REQUEST_POSITION_READ(axis));
+    if(!spi.waitResponse(REQUEST_POSITION_STATUS,RESPONSE_POSITION_STATUS_OK(axis), ZCOR_SPI_TIMEOUT)) {
+        SERIAL_ECHOLNPGM("Position request timeout");
+        return false;
     }
     SERIAL_ECHOLNPGM("Position aquired");
     uint8_t res;
     avp.init();
+    unsigned long timeout = ZCOR_SPI_TIMEOUT + millis(); 
     while(!avp.verify()) {
+        if(millis() > timeout) {
+            SERIAL_ECHOLNPGM("Position verify timeout");
+            return false;
+        }
         res = spi.transfer(REQUEST_POSITION_DIGIT);
         //Serial.println(res);
         if(RESPONSE_IS_POSITION_DIGIT(res)) {
@@ -62,9 +64,17 @@ void Zcor::test() {
         }
         // delay(50);
     }
-    float value = avp.pos();
-    SERIAL_ECHOLNPAIR("Got value: ", value);
     WRITE(ZCOR_SS_PIN, HIGH); // disable spi
+    return true;
+}
+void Zcor::test() {
+    SERIAL_ECHOLNPGM("Z correction test");
+    if(readPosition(1)){
+        float value = avp.pos();
+        SERIAL_ECHOLNPAIR("Got value: ", value);
+    } else {
+        SERIAL_ECHOLNPGM("Position read error");
+    }
 }
 
 // private:

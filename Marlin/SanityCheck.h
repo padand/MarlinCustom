@@ -1681,6 +1681,15 @@ static_assert(COUNT(sanity_arr_3) <= NUM_AXIS_N, "DEFAULT_MAX_ACCELERATION has t
   #endif
 #endif // SPINDLE_LASER_ENABLE
 
+/**
+ * Sanity checks for Z_STEP_CORRECTION
+ */
+#if ENABLED(Z_STEP_CORRECTION)
+  #if ENABLED(SDSUPPORT)
+    #error "using SDSUPPORT and Z_STEP_CORRECTION simultaneously could be buggy and is not fully tested."
+  #endif
+#endif // Z_STEP_CORRECTION
+
 #if ENABLED(CNC_COORDINATE_SYSTEMS) && ENABLED(NO_WORKSPACE_OFFSETS)
   #error "CNC_COORDINATE_SYSTEMS is incompatible with NO_WORKSPACE_OFFSETS."
 #endif

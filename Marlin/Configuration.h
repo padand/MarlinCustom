@@ -35,7 +35,6 @@
  * Equipment options
  */
 //#define LARGE_BED
-#define SDSUPPORT
 //#define CHANGE_Y_DIRECTION        // If your bed homes in the wrong direction (it should move front to back) enable this.
 //#define CHANGE_X_DIRECTION        // If your X carriage homes in the wrong direction (it should move right to left) enable this.
 #define CHANGE_Z_DIRECTION        // If your Z homes in the wrong direction (it should move top to bottom) enable this.
@@ -213,9 +212,10 @@
  * Enable this to activate the Z correction algorithm
  * Requires BABYSTEPPING to be enabled and dual Z motors on separate drivers
  */
-//#define Z_STEP_CORRECTION
+#define Z_STEP_CORRECTION
 #if ENABLED(Z_STEP_CORRECTION)
   #define ZCOR_UNIT 0.00625
+  #define ZCOR_SPI_TIMEOUT 1500
 #endif
 
 /**

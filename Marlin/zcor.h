@@ -12,6 +12,8 @@ class Zcor {
         static void reset();
         static void correct(const float height);
         static void test();
+        // reads the axis position; returns true if successfull
+        static bool readPosition(const uint8_t axis);
 
     private:
         static int currentCorrectionSteps[Zlr];
