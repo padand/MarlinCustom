@@ -211,6 +211,11 @@
  * Highly experimental !!!
  * Enable this to activate the Z correction algorithm
  * Requires BABYSTEPPING to be enabled and dual Z motors on separate drivers
+ * The M13 command used for calibration is a long running command and it may
+ * raise a communication timeout error in your serial interface. Make sure you
+ * configure your serial interface to prevent this. For example, in octoprint,
+ * go to settings > serial connection > firmware & protocol and add the M13
+ * command to the long running commands list.
  */
 #define Z_STEP_CORRECTION
 #if ENABLED(Z_STEP_CORRECTION)
