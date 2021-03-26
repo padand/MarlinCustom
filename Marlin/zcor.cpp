@@ -11,6 +11,14 @@ Zcor zcor; // singleton
     #define ZCOR_SPI_TIMEOUT 1500
 #endif
 
+#ifdef ZCOR_ENABLE_DEBUG
+  #define DEBUG_MSG(msg) SERIAL_ECHOLNPGM(msg)
+  #define DEBUG_PAIR(msg, data) SERIAL_ECHOLNPAIR(msg, data)
+#else
+  #define DEBUG_MSG(msg)
+  #define DEBUG_PAIR(msg, data)
+#endif
+
 // public:
 
 void Zcor::init(){
@@ -58,7 +66,7 @@ bool Zcor::readPosition(const uint8_t axis) {
             return false;
         }
         res = spi.transfer(REQUEST_POSITION_DIGIT);
-        //Serial.println(res);
+        DEBUG_PAIR("spi res: ", res);
         if(RESPONSE_IS_POSITION_DIGIT(res)) {
             avp.add(RESPONSE_POSITION_DIGIT(res));
         }
