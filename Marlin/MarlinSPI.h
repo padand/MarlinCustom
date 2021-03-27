@@ -58,7 +58,7 @@ class SPI<MISO_PIN, MOSI_PIN, SCK_PIN> {
     }
     // polls a request waiting for an expected response
     // returns true if the response arrived in time
-    static uint8_t waitResponse(uint8_t poll, uint8_t expected, unsigned long timeout) {
+    static bool waitResponse(uint8_t poll, uint8_t expected, unsigned long timeout) {
       uint8_t res;
       timeout += millis();
       while(timeout > millis()) {

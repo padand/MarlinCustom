@@ -63,10 +63,10 @@ bool Zcor::readPosition(const uint8_t axis) {
     while(!avp.verify()) {
         if(millis() > timeout) {
             SERIAL_ECHOLNPGM("Position verify timeout");
+            DEBUG_PAIR("last spi res: ", res);
             return false;
         }
         res = spi.transfer(REQUEST_POSITION_DIGIT);
-        DEBUG_PAIR("spi res: ", res);
         if(RESPONSE_IS_POSITION_DIGIT(res)) {
             avp.add(RESPONSE_POSITION_DIGIT(res));
         }
