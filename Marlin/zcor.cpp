@@ -24,6 +24,9 @@ Zcor zcor; // singleton
 void Zcor::init(){
     SERIAL_ECHOLNPGM("Z correction init");
     spi.init();
+    spi.setRate(SPI_EIGHTH_SPEED);
+    spi.setBitOrder(SPI_MSBFIRST);
+    spi.setDataMode(SPI_MODE0);
     OUT_WRITE(SS_PIN, HIGH);
     OUT_WRITE(ZCOR_SS_PIN, HIGH);
 };
@@ -38,7 +41,6 @@ void Zcor::correct(const float height){
     currentCorrectionSteps[Zr_AXIS] = csZr;
 };
 bool Zcor::readPosition(const uint8_t axis) {
-    spi.setRate(SPI_QUARTER_SPEED);
     WRITE(SS_PIN, HIGH);
     WRITE(ZCOR_SS_PIN, LOW); // enable spi
     delay(100);
