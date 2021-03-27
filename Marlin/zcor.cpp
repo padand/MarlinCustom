@@ -38,14 +38,7 @@ void Zcor::correct(const float height){
     currentCorrectionSteps[Zr_AXIS] = csZr;
 };
 bool Zcor::readPosition(const uint8_t axis) {
-    CBI(
-      #ifdef PRR
-        PRR
-      #elif defined(PRR0)
-        PRR0
-      #endif
-        , PRSPI);
-    SPCR = _BV(MSTR) | _BV(SPE) | _BV(SPR0);
+    spi.setRate(SPI_QUARTER_SPEED);
     WRITE(SS_PIN, HIGH);
     WRITE(ZCOR_SS_PIN, LOW); // enable spi
     delay(100);

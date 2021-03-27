@@ -26,6 +26,18 @@
 #include <stdint.h>
 #include "softspi.h"
 
+// make sure SPCR rate is in expected bits
+#if (SPR0 != 0 || SPR1 != 1)
+  #error "unexpected SPCR bits"
+#endif
+
+// SPI speed is F_CPU/2^(1 + index), 0 <= index <= 6
+uint8_t const SPI_FULL_SPEED = 0,         // Set SCK to max rate of F_CPU/2
+              SPI_HALF_SPEED = 1,         // Set SCK rate to F_CPU/4
+              SPI_QUARTER_SPEED = 2,      // Set SCK rate to F_CPU/8
+              SPI_EIGHTH_SPEED = 3,       // Set SCK rate to F_CPU/16
+              SPI_SIXTEENTH_SPEED = 4;    // Set SCK rate to F_CPU/32
+
 template<uint8_t MisoPin, uint8_t MosiPin, uint8_t SckPin>
 class SPI {
   static SoftSPI<MisoPin, MosiPin, SckPin> softSPI;
@@ -45,6 +57,11 @@ class SPI<MISO_PIN, MOSI_PIN, SCK_PIN> {
         OUT_WRITE(MOSI_PIN, HIGH);
         SET_INPUT(MISO_PIN);
         WRITE(MISO_PIN, HIGH);
+    }
+    FORCE_INLINE static void setRate(uint8_t spiRate) {
+      // See avr processor documentation
+      SPCR = _BV(SPE) | _BV(MSTR) | (spiRate >> 1);
+      SPSR = spiRate & 1 || spiRate == 6 ? 0 : _BV(SPI2X);
     }
     FORCE_INLINE static uint8_t receive() {
       SPDR = 0;
