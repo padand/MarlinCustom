@@ -10062,14 +10062,14 @@ inline void gcode_M226() {
           SERIAL_ECHO_START();
           SERIAL_ECHOPAIR("Babystep left: ", steps);
           SERIAL_EOL();
-          thermalManager.babystep_Zi(Z2_AXIS, steps * configured_microsteps[Z_AXIS]);
+          thermalManager.babystep_Zi(Z1_AXIS, steps * configured_microsteps[Z_AXIS]);
         }
         if (parser.seenval('R')) {
           const int16_t steps = parser.value_int();
           SERIAL_ECHO_START();
           SERIAL_ECHOPAIR("Babystep right: ", steps);
           SERIAL_EOL();
-          thermalManager.babystep_Zi(Z1_AXIS, steps * configured_microsteps[Z_AXIS]);
+          thermalManager.babystep_Zi(Z2_AXIS, steps * configured_microsteps[Z_AXIS]);
         }
       #endif
     #endif
