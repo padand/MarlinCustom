@@ -70,9 +70,9 @@ bool Zcor::readPosition(const uint8_t axis) {
     WRITE(ZCOR_SS_PIN, HIGH); // disable spi
     return true;
 }
-void Zcor::test() {
+void Zcor::test(uint8_t axis) {
     SERIAL_ECHOLNPGM("Z correction test");
-    if(readPosition(1)){
+    if(readPosition(axis)){
         float value = avp.pos();
         SERIAL_ECHOLNPAIR("Got value: ", value);
     } else {

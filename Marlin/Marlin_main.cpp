@@ -6890,7 +6890,18 @@ void report_xyz_from_stepper_position() {
  */
 #if ENABLED(Z_STEP_CORRECTION)
   inline void gcode_M13() {
-    zcor.test();
+    if (parser.seenval('T')) {
+      const uint8_t tValue = parser.value_int();
+      if(tValue == 0) {
+        zcor.reset();
+      } else {
+        zcor.test(tValue);
+      }
+    } else {
+      // usage
+      SERIAL_ECHOLNPGM("M13 T0 : Reset calipers");
+      SERIAL_ECHOLNPGM("M13 T[1-9] : Z correction test; prints the position of the axis identified by T");
+    }
   }
 #endif
 

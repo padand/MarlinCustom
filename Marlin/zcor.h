@@ -11,7 +11,7 @@ class Zcor {
         static void init();
         static void reset();
         static void correct(const float height);
-        static void test();
+        static void test(uint8_t axis);
         // reads the axis position; returns true if successfull
         static bool readPosition(const uint8_t axis);
 
