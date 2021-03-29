@@ -16,7 +16,7 @@ class Zcor {
         static bool readPosition(const uint8_t axis);
 
     private:
-        static int currentCorrectionSteps[Zlr];
+        static int currentCorrectionSteps[ZZZ];
         static const uint8_t configured_microsteps[];
         static int correctionStepsZr(const float height);
         static SPI<MISO_PIN, MOSI_PIN, SCK_PIN> spi;

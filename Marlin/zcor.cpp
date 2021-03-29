@@ -37,8 +37,8 @@ void Zcor::reset(){
 void Zcor::correct(const float height){
     SERIAL_ECHOLNPAIR("Z correction correct at height ", height);
     const int csZr = height == 0 ? 0 : correctionStepsZr(height) * configured_microsteps[Z_AXIS];
-    thermalManager.babystep_Zlr(Zr_AXIS, csZr - currentCorrectionSteps[Zr_AXIS]);
-    currentCorrectionSteps[Zr_AXIS] = csZr;
+    thermalManager.babystep_Zi(Z1_AXIS, csZr - currentCorrectionSteps[Z1_AXIS]);
+    currentCorrectionSteps[Z1_AXIS] = csZr;
 };
 bool Zcor::readPosition(const uint8_t axis) {
     WRITE(SS_PIN, HIGH);
@@ -84,7 +84,7 @@ void Zcor::test(uint8_t axis) {
 
 const uint8_t Zcor::configured_microsteps[] = MICROSTEP_MODES;
 
-int Zcor::currentCorrectionSteps[Zlr] = { 0 };
+int Zcor::currentCorrectionSteps[ZZZ] = { 0 };
 
 int Zcor::correctionStepsZr(const float height) {
     return 0;

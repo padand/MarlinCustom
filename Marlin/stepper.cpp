@@ -254,14 +254,14 @@ int8_t Stepper::count_direction[NUM_AXIS] = {
 
 #if ENABLED(Z_DUAL_STEPPER_DRIVERS)
   #define Z_APPLY_DIR(v,Q) do{ Z_DIR_WRITE(v); Z2_DIR_WRITE(v); }while(0)
-  #define Zl_APPLY_DIR(v,Q) Z2_DIR_WRITE(v)
-  #define Zr_APPLY_DIR(v,Q) Z_DIR_WRITE(v)
+  #define Z1_APPLY_DIR(v,Q) Z_DIR_WRITE(v)
+  #define Z2_APPLY_DIR(v,Q) Z2_DIR_WRITE(v)
   #if ENABLED(Z_DUAL_ENDSTOPS)
     #define Z_APPLY_STEP(v,Q) DUAL_ENDSTOP_APPLY_STEP(Z,v)
   #else
     #define Z_APPLY_STEP(v,Q) do{ Z_STEP_WRITE(v); Z2_STEP_WRITE(v); }while(0)
-    #define Zl_APPLY_STEP(v,Q) Z2_STEP_WRITE(v)
-    #define Zr_APPLY_STEP(v,Q) Z_STEP_WRITE(v)
+    #define Z1_APPLY_STEP(v,Q) Z_STEP_WRITE(v)
+    #define Z2_APPLY_STEP(v,Q) Z2_STEP_WRITE(v)
   #endif
 #else
   #define Z_APPLY_DIR(v,Q) Z_DIR_WRITE(v)
@@ -2225,12 +2225,12 @@ void Stepper::report_positions() {
 #if ENABLED(BABYSTEPPING)
 
   #if HAS_Z2_ENABLE
-    #define Zl_DIR_READ Z2_DIR_READ
-    #define Zr_DIR_READ Z_DIR_READ
-    #define INVERT_Zl_DIR INVERT_Z_DIR
-    #define INVERT_Zr_DIR INVERT_Z_DIR
-    #define INVERT_Zl_STEP_PIN INVERT_Z_STEP_PIN
-    #define INVERT_Zr_STEP_PIN INVERT_Z_STEP_PIN
+    #define Z1_DIR_READ Z_DIR_READ
+    //#define Z2_DIR_READ Z2_DIR_READ
+    #define INVERT_Z1_DIR INVERT_Z_DIR
+    #define INVERT_Z2_DIR INVERT_Z_DIR
+    #define INVERT_Z1_STEP_PIN INVERT_Z_STEP_PIN
+    #define INVERT_Z2_STEP_PIN INVERT_Z_STEP_PIN
   #endif
 
   #if MINIMUM_STEPPER_PULSE
@@ -2376,16 +2376,16 @@ void Stepper::report_positions() {
   #if HAS_Z2_ENABLE
     // MUST ONLY BE CALLED BY AN ISR,
     // No other ISR should ever interrupt this!
-    void Stepper::babystepZlr(const AxisZlrEnum axis, const bool direction) {
+    void Stepper::babystepZi(const AxisZEnum i, const bool direction) {
       cli();
 
-      switch (axis){
-        case Zl_AXIS:
-          BABYSTEP_AXIS(Zl, BABYSTEP_INVERT_Z, direction);
+      switch (i){
+        case Z1_AXIS:
+          BABYSTEP_AXIS(Z1, BABYSTEP_INVERT_Z, direction);
           break;
 
-        case Zr_AXIS:
-          BABYSTEP_AXIS(Zr, BABYSTEP_INVERT_Z, direction);
+        case Z2_AXIS:
+          BABYSTEP_AXIS(Z2, BABYSTEP_INVERT_Z, direction);
           break;
         
         default: break;
