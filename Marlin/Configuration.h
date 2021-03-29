@@ -222,6 +222,8 @@
   #define ZCOR_ENABLE_DEBUG
   #define ZCOR_UNIT 0.00625
   #define ZCOR_SPI_TIMEOUT 1500
+  #define ZCOR_CALIBRATE__AT_X 95
+  #define ZCOR_CALIBRATE__AT_Y 95
 #endif
 
 /**
@@ -1225,11 +1227,11 @@
 // @section machine
 
 // The size of the print bed
-#define X_BED_SIZE 200
+#define X_BED_SIZE 190
 #if ENABLED(LARGE_BED)
   #define Y_BED_SIZE 280
 #else
-  #define Y_BED_SIZE 200
+  #define Y_BED_SIZE 190
 #endif
 
 // Travel limits (mm) after homing, corresponding to endstop positions.

@@ -6897,10 +6897,17 @@ void report_xyz_from_stepper_position() {
       } else {
         zcor.test(tValue);
       }
+    } else if(parser.seenval('S')){
+      const uint8_t sValue = parser.value_int();
+      if (sValue == 1) {
+        SERIAL_ECHOLNPGM("Make sure that each Z axis is in it's origin position, then turn on calipers at 0.00");
+        enqueue_and_echo_commands_P(PSTR("G91\nG28 X0 Y0\nG1 X" STRINGIFY(ZCOR_CALIBRATE__AT_X) " Y" STRINGIFY(ZCOR_CALIBRATE__AT_Y) " F6000\nG28 Z0\nG90"));
+      }
     } else {
       // usage
       SERIAL_ECHOLNPGM("M13 T0 : Reset calipers");
       SERIAL_ECHOLNPGM("M13 T[1-9] : Z correction test; prints the position of the axis identified by T");
+      SERIAL_ECHOLNPGM("M13 S1 : Stage 1 of Z correction. Moves the XY to bed center and homes Z. After that, you need to make sure that each Z axis is in it's origin position and turn on the calipers at 0.00");
     }
   }
 #endif
