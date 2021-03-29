@@ -465,6 +465,7 @@
 // MICROSTEP_MODES {X, Y, Z, E0, E1}
 // values: [1,8,16,128] for heroic, [1,2,4,8,16] otherwise
 #define MICROSTEP_MODES {16, 16, 16, 16, 16 }
+//TODO: Z full step, see: https://github.com/MarlinFirmware/Marlin/issues/7486
 
 /**
  *  @section  stepper motor current
