@@ -462,7 +462,9 @@
 //#define ADAPTIVE_STEP_SMOOTHING
 
 // Microstep setting (Only functional when stepper driver microstep pins are connected to MCU.
-#define MICROSTEP_MODES { 16, 16, 16, 16, 16 } // [1,2,4,8,16]
+// MICROSTEP_MODES {X, Y, Z, E0, E1}
+// values: [1,8,16,128] for heroic, [1,2,4,8,16] otherwise
+#define MICROSTEP_MODES {16, 16, 16, 16, 16 }
 
 /**
  *  @section  stepper motor current
