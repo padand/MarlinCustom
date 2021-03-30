@@ -221,8 +221,9 @@
 #if ENABLED(Z_STEP_CORRECTION)
   #define ZCOR_ENABLE_DEBUG
   #define ZCOR_UNIT 0.00625
-  #define ZCOR_MAX_LAYER_HEIGHT 0.2
-  #define ZCOR_MAX_HEIGHT 150
+  // TODO: sanity check ZCOR_Z_HEIGHT must be a whole multiple of ZCOR_LAYER_HEIGHT
+  #define ZCOR_LAYER_HEIGHT 0.2
+  #define ZCOR_Z_HEIGHT 2
   #define ZCOR_SPI_TIMEOUT 1500
   #define ZCOR_CALIBRATE__AT_X 95
   #define ZCOR_CALIBRATE__AT_Y 95

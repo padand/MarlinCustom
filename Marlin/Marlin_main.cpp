@@ -6891,7 +6891,6 @@ void report_xyz_from_stepper_position() {
 #if ENABLED(Z_STEP_CORRECTION)
 
   bool z_correction_scheduled = false;
-  float z_correction_max_h, z_correction_layer_height;
 
   inline void gcode_M13() {
     if (parser.seenval('T')) {
@@ -6912,29 +6911,13 @@ void report_xyz_from_stepper_position() {
         SERIAL_ECHOLNPGM("Make sure that each Z axis is in it's origin position, then turn on calipers at 0.00");
         enqueue_and_echo_commands_P(PSTR("G91\nG28 X0 Y0\nG1 X" STRINGIFY(ZCOR_CALIBRATE__AT_X) " Y" STRINGIFY(ZCOR_CALIBRATE__AT_Y) " F6000\nG28 Z0\nG90"));
       } else if (sValue == 2 && IsRunning()) {
-        if(parser.seenval('L')) {
-          z_correction_layer_height = parser.value_float();
-        } else {
-          z_correction_layer_height = float(ZCOR_MAX_LAYER_HEIGHT);
-        }
-        if(parser.seenval('H')) {
-          z_correction_max_h = parser.value_float();
-        } else {
-          z_correction_max_h = float(ZCOR_MAX_HEIGHT);
-        }
-        if(z_correction_layer_height<0) z_correction_layer_height*=(-1.0f);
-        if(z_correction_max_h<0) z_correction_max_h*=(-1.0f);
-        if(z_correction_layer_height>float(ZCOR_MAX_LAYER_HEIGHT) || z_correction_layer_height==0) z_correction_layer_height=float(ZCOR_MAX_LAYER_HEIGHT);
-        if(z_correction_max_h>float(ZCOR_MAX_HEIGHT) || z_correction_max_h==0) z_correction_max_h=float(ZCOR_MAX_HEIGHT);
-        SERIAL_ECHOLNPAIR("Correct layer height: ", z_correction_layer_height);
-        SERIAL_ECHOLNPAIR("Correct up to H: ", z_correction_max_h);
         z_correction_scheduled = true;
       }
     } else {
       // usage
       SERIAL_ECHOLNPGM("M13 T[1-9] : Z correction test; prints the position of the axis identified by T");
       SERIAL_ECHOLNPGM("M13 S1 : Stage 1 of Z correction. Moves the XY to bed center and homes Z. After that, you need to make sure that each Z axis is in it's origin position and turn on the calipers at 0.00");
-      SERIAL_ECHOLNPGM("M13 S2 L0.1 H30: Stage 2 of Z correction. Runs the correction algorithm up to height H (defaults to ZCOR_MAX_HEIGHT), for a layer height L (defaults to ZCOR_MAX_LAYER_HEIGHT)");
+      SERIAL_ECHOLNPGM("M13 S2 : Stage 2 of Z correction. Runs the correction algorithm up to height ZCOR_Z_HEIGHT (" STRINGIFY(ZCOR_Z_HEIGHT) ") for a layer height ZCOR_LAYER_HEIGHT ( " STRINGIFY(ZCOR_LAYER_HEIGHT) " )");
     }
   }
 
@@ -6943,13 +6926,12 @@ void report_xyz_from_stepper_position() {
       SERIAL_ECHOLNPGM("Make sure that both calipers show 0 at Z height 0");
       return;
     }
-    zcor.probeLayerHeight(z_correction_layer_height);
     // set position to absolute (g90)
     relative_mode = false;
     // set movement speed
     feedrate_mm_s = MMM_TO_MMS(200.0f);
     // loop over each layer
-    for(float z=0; z<=z_correction_max_h; z+=z_correction_layer_height) {
+    for(float z=0; z<=float(ZCOR_Z_HEIGHT); z+=float(ZCOR_LAYER_HEIGHT)) {
       SERIAL_ECHOLNPAIR("Move to Z: ", z);
       destination[Z_AXIS] = LOGICAL_TO_NATIVE(z, Z_AXIS);
       prepare_move_to_destination();

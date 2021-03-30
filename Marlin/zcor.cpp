@@ -34,22 +34,14 @@ void CorrectionRequired::setSteps(AxisZEnum axis, char steps) {
 
 // PUBLIC
 
-void Correction::setLayerHeight(const float h) {
-    layerHeight = h;
-};
-
-float Correction::getLayerHeight() {
-    return layerHeight;
-};
-
 void Correction::setRequired(float height, const CorrectionRequired cr) {
-    int index = height / layerHeight;
+    int index = height / float(ZCOR_LAYER_HEIGHT);
     if (index >= requiredMax) index = requiredMax - 1;
     required[index] = cr;
 };
 
 CorrectionRequired Correction::getRequired(float height) {
-    int index = height / layerHeight;
+    int index = height / float(ZCOR_LAYER_HEIGHT);
     if (index >= requiredMax) index = requiredMax - 1;
     return required[index];
 };
@@ -57,7 +49,6 @@ CorrectionRequired Correction::getRequired(float height) {
 // PRIVATE
 
 CorrectionRequired Correction::required[requiredMax];
-float Correction::layerHeight;
 
 //=============================================================== CLASS Zcor
 
@@ -71,9 +62,6 @@ void Zcor::init(){
     spi.setDataMode(SPI_MODE0);
     OUT_WRITE(SS_PIN, HIGH);
     OUT_WRITE(ZCOR_SS_PIN, HIGH);
-};
-void Zcor::probeLayerHeight(const float layerHeight) {
-    correction.setLayerHeight(layerHeight);
 };
 void Zcor::probe(const float height) {
     CorrectionRequired cr;

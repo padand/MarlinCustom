@@ -16,21 +16,17 @@ class CorrectionRequired {
 
 class Correction {
     public:
-        static void setLayerHeight(const float h);
-        static float getLayerHeight();
         static void setRequired(float height, const CorrectionRequired cr);
         static CorrectionRequired getRequired(float height);
         static void printRequired();
     private:
-        static const int requiredMax = int(ZCOR_MAX_HEIGHT/ZCOR_MAX_LAYER_HEIGHT);
+        static const int requiredMax = int(float(ZCOR_Z_HEIGHT)/float(ZCOR_LAYER_HEIGHT));
         static CorrectionRequired required[requiredMax];
-        static float layerHeight;
 };
 
 class Zcor {
     public:
         static void init();
-        static void probeLayerHeight(const float layerHeight);
         static void probe(const float height);
         static void correct(const float height);
         // reads the axis position; returns true if successfull
