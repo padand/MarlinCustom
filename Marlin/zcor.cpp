@@ -34,11 +34,6 @@ void Zcor::probe(const float height) {
     float value;
     LOOP_Z(axis) {
         while(!readAxisPosition((AxisZEnum)axis, &value));
-        // verify correct initialization
-        if (height == 0 && value != 0) {
-            SERIAL_ECHOLNPGM("Make sure that both calipers show 0 at Z height 0");
-            return;            
-        }
         SERIAL_ECHOLNPAIR("probed axis: ", axis);
         SERIAL_ECHOLNPAIR("got value: ", value);
         SERIAL_ECHOLNPAIR("diff: ", height - value);
@@ -81,6 +76,17 @@ bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
     *position = avp.pos();
     return true;
 }
+bool Zcor::verifyAllAxesAt0() {
+    float value;
+    LOOP_Z(axis) {
+        while(!readAxisPosition((AxisZEnum)axis, &value));
+        // verify correct initialization
+        if (value != 0) {
+            return false;            
+        }
+    }
+    return true;
+};
 
 // private:
 

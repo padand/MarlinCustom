@@ -6939,6 +6939,10 @@ void report_xyz_from_stepper_position() {
   }
 
   inline void do_z_correction() {
+    if(!zcor.verifyAllAxesAt0()) {
+      SERIAL_ECHOLNPGM("Make sure that both calipers show 0 at Z height 0");
+      return;
+    }
     // set position to absolute (g90)
     relative_mode = false;
     // set movement speed

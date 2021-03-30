@@ -13,6 +13,7 @@ class Zcor {
         static void correct(const float height);
         // reads the axis position; returns true if successfull
         static bool readAxisPosition(const AxisZEnum axis, float *position);
+        static bool verifyAllAxesAt0();
 
     private:
         static int currentCorrectionSteps[ZZZ];
