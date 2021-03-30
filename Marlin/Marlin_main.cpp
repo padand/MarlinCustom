@@ -6899,7 +6899,12 @@ void report_xyz_from_stepper_position() {
       if(tValue == 0) {
         zcor.reset();
       } else {
-        zcor.test((AxisZEnum)(tValue-1));
+        float value;
+        if(zcor.readAxisPosition((AxisZEnum)(tValue-1), &value)){
+            SERIAL_ECHOLNPAIR("Got value: ", value);
+        } else {
+            SERIAL_ECHOLNPGM("Position read error");
+        }
       }
     } else if(parser.seenval('S')){
       const uint8_t sValue = parser.value_int();

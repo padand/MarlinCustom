@@ -34,11 +34,17 @@ void Zcor::probe(const float height) {
     float previousValue;
     float value;
     LOOP_Z(axis) {
+        // reading two equal consecutive values is considered successful
         previousValue = 0;
         value = -1;
         while(value != previousValue) {
             previousValue = value;
             while(!readAxisPosition((AxisZEnum)axis, &value));
+        }
+        // verify correct initialization
+        if (height == 0 && value != 0) {
+            SERIAL_ECHOLNPGM("Make sure that both calipers show 0 at Z height 0");
+            return;            
         }
         SERIAL_ECHOLNPAIR("probed axis: ", axis);
         SERIAL_ECHOLNPAIR("got value: ", value);
@@ -85,15 +91,6 @@ bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
     WRITE(ZCOR_SS_PIN, HIGH); // disable spi
     *position = avp.pos();
     return true;
-}
-void Zcor::test(AxisZEnum axis) {
-    SERIAL_ECHOLNPGM("Z correction test");
-    float value;
-    if(readAxisPosition(axis, &value)){
-        SERIAL_ECHOLNPAIR("Got value: ", value);
-    } else {
-        SERIAL_ECHOLNPGM("Position read error");
-    }
 }
 
 // private:
