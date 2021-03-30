@@ -19,7 +19,49 @@ Zcor zcor; // singleton
   #define DEBUG_PAIR(msg, data)
 #endif
 
-// public:
+//=============================================================== CLASS CorrectionRequired
+
+// PUBLIC
+
+char CorrectionRequired::getSteps(AxisZEnum axis) {
+    return steps[axis];
+}
+void CorrectionRequired::setSteps(AxisZEnum axis, char steps) {
+    this->steps[axis] = steps;
+}
+
+//=============================================================== CLASS Correction
+
+// PUBLIC
+
+void Correction::setLayerHeight(const float h) {
+    layerHeight = h;
+};
+
+float Correction::getLayerHeight() {
+    return layerHeight;
+};
+
+void Correction::setRequired(float height, const CorrectionRequired cr) {
+    int index = height / layerHeight;
+    if (index >= requiredMax) index = requiredMax - 1;
+    required[index] = cr;
+};
+
+CorrectionRequired Correction::getRequired(float height) {
+    int index = height / layerHeight;
+    if (index >= requiredMax) index = requiredMax - 1;
+    return required[index];
+};
+
+// PRIVATE
+
+CorrectionRequired Correction::required[requiredMax];
+float Correction::layerHeight;
+
+//=============================================================== CLASS Zcor
+
+// PUBLIC
 
 void Zcor::init(){
     SERIAL_ECHOLNPGM("Z correction init");
@@ -30,13 +72,19 @@ void Zcor::init(){
     OUT_WRITE(SS_PIN, HIGH);
     OUT_WRITE(ZCOR_SS_PIN, HIGH);
 };
+void Zcor::probeLayerHeight(const float layerHeight) {
+    correction.setLayerHeight(layerHeight);
+};
 void Zcor::probe(const float height) {
+    CorrectionRequired cr;
     float value;
     LOOP_Z(axis) {
         while(!readAxisPosition((AxisZEnum)axis, &value));
         SERIAL_ECHOLNPAIR("probed axis: ", axis);
         SERIAL_ECHOLNPAIR("got value: ", value);
         SERIAL_ECHOLNPAIR("diff: ", height - value);
+        cr.setSteps((AxisZEnum)axis, height - value);
+        correction.setRequired(height, cr);
     }
 }
 void Zcor::correct(const float height){
@@ -88,7 +136,7 @@ bool Zcor::verifyAllAxesAt0() {
     return true;
 };
 
-// private:
+// PRIVATE
 
 const uint8_t Zcor::configured_microsteps[] = MICROSTEP_MODES;
 
@@ -101,3 +149,5 @@ int Zcor::correctionStepsZr(const float height) {
 SPI<MISO_PIN, MOSI_PIN, SCK_PIN> Zcor::spi;
 
 AxisValueParser Zcor::avp;
+
+Correction Zcor::correction;

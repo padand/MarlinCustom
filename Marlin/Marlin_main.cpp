@@ -6943,6 +6943,7 @@ void report_xyz_from_stepper_position() {
       SERIAL_ECHOLNPGM("Make sure that both calipers show 0 at Z height 0");
       return;
     }
+    zcor.probeLayerHeight(z_correction_layer_height);
     // set position to absolute (g90)
     relative_mode = false;
     // set movement speed
