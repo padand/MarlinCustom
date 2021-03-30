@@ -51,10 +51,6 @@ void Zcor::probe(const float height) {
         SERIAL_ECHOLNPAIR("diff: ", height - value);
     }
 }
-void Zcor::reset(){
-    SERIAL_ECHOLNPGM("Z correction reset");
-    correct(0);
-};
 void Zcor::correct(const float height){
     SERIAL_ECHOLNPAIR("Z correction correct at height ", height);
     const int csZr = height == 0 ? 0 : correctionStepsZr(height) * configured_microsteps[Z_AXIS];

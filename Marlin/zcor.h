@@ -10,7 +10,6 @@ class Zcor {
     public:
         static void init();
         static void probe(const float height);
-        static void reset();
         static void correct(const float height);
         // reads the axis position; returns true if successfull
         static bool readAxisPosition(const AxisZEnum axis, float *position);

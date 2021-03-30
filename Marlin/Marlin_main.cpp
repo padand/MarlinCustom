@@ -4444,7 +4444,7 @@ inline void gcode_G28(const bool always_home_all) {
 
   #if ENABLED(Z_STEP_CORRECTION)
     if (home_all || homeZ) {
-      zcor.reset();
+      zcor.correct(0);
     }
   #endif
 
@@ -6896,15 +6896,15 @@ void report_xyz_from_stepper_position() {
   inline void gcode_M13() {
     if (parser.seenval('T')) {
       const uint8_t tValue = parser.value_int();
-      if(tValue == 0) {
-        zcor.reset();
-      } else {
+      if(tValue > 0 && tValue <= ZZZ) {
         float value;
         if(zcor.readAxisPosition((AxisZEnum)(tValue-1), &value)){
             SERIAL_ECHOLNPAIR("Got value: ", value);
         } else {
             SERIAL_ECHOLNPGM("Position read error");
         }
+      } else {
+        SERIAL_ECHOLNPGM("Invalid T value");
       }
     } else if(parser.seenval('S')){
       const uint8_t sValue = parser.value_int();
@@ -6912,20 +6912,29 @@ void report_xyz_from_stepper_position() {
         SERIAL_ECHOLNPGM("Make sure that each Z axis is in it's origin position, then turn on calipers at 0.00");
         enqueue_and_echo_commands_P(PSTR("G91\nG28 X0 Y0\nG1 X" STRINGIFY(ZCOR_CALIBRATE__AT_X) " Y" STRINGIFY(ZCOR_CALIBRATE__AT_Y) " F6000\nG28 Z0\nG90"));
       } else if (sValue == 2 && IsRunning()) {
-        if(parser.seenval('Z')) z_correction_layer_height = parser.value_float();
-        if(parser.seenval('H')) z_correction_max_h = parser.value_float();
+        if(parser.seenval('L')) {
+          z_correction_layer_height = parser.value_float();
+        } else {
+          z_correction_layer_height = float(ZCOR_MAX_LAYER_HEIGHT);
+        }
+        if(parser.seenval('H')) {
+          z_correction_max_h = parser.value_float();
+        } else {
+          z_correction_max_h = float(ZCOR_MAX_HEIGHT);
+        }
         if(z_correction_layer_height<0) z_correction_layer_height*=(-1.0f);
         if(z_correction_max_h<0) z_correction_max_h*=(-1.0f);
+        if(z_correction_layer_height>float(ZCOR_MAX_LAYER_HEIGHT) || z_correction_layer_height==0) z_correction_layer_height=float(ZCOR_MAX_LAYER_HEIGHT);
+        if(z_correction_max_h>float(ZCOR_MAX_HEIGHT) || z_correction_max_h==0) z_correction_max_h=float(ZCOR_MAX_HEIGHT);
         SERIAL_ECHOLNPAIR("Correct layer height: ", z_correction_layer_height);
         SERIAL_ECHOLNPAIR("Correct up to H: ", z_correction_max_h);
         z_correction_scheduled = true;
       }
     } else {
       // usage
-      SERIAL_ECHOLNPGM("M13 T0 : Reset calipers");
       SERIAL_ECHOLNPGM("M13 T[1-9] : Z correction test; prints the position of the axis identified by T");
       SERIAL_ECHOLNPGM("M13 S1 : Stage 1 of Z correction. Moves the XY to bed center and homes Z. After that, you need to make sure that each Z axis is in it's origin position and turn on the calipers at 0.00");
-      SERIAL_ECHOLNPGM("M13 S2 Z0.1 H30: Stage 2 of Z correction. Runs the correction algorithm up to height H, for a layer height Z");
+      SERIAL_ECHOLNPGM("M13 S2 L0.1 H30: Stage 2 of Z correction. Runs the correction algorithm up to height H (defaults to ZCOR_MAX_HEIGHT), for a layer height L (defaults to ZCOR_MAX_LAYER_HEIGHT)");
     }
   }
 
@@ -6935,7 +6944,7 @@ void report_xyz_from_stepper_position() {
     // set movement speed
     feedrate_mm_s = MMM_TO_MMS(200.0f);
     // loop over each layer
-    for(float z=0; z<z_correction_max_h; z+=z_correction_layer_height) {
+    for(float z=0; z<=z_correction_max_h; z+=z_correction_layer_height) {
       SERIAL_ECHOLNPAIR("Move to Z: ", z);
       destination[Z_AXIS] = LOGICAL_TO_NATIVE(z, Z_AXIS);
       prepare_move_to_destination();
