@@ -6899,7 +6899,7 @@ void report_xyz_from_stepper_position() {
       if(tValue == 0) {
         zcor.reset();
       } else {
-        zcor.test(tValue);
+        zcor.test((AxisZEnum)(tValue-1));
       }
     } else if(parser.seenval('S')){
       const uint8_t sValue = parser.value_int();
@@ -6935,6 +6935,7 @@ void report_xyz_from_stepper_position() {
       destination[Z_AXIS] = LOGICAL_TO_NATIVE(z, Z_AXIS);
       prepare_move_to_destination();
       planner.synchronize();
+      zcor.probe(z);
     }
   }
 #endif

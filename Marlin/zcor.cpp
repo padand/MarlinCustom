@@ -30,6 +30,21 @@ void Zcor::init(){
     OUT_WRITE(SS_PIN, HIGH);
     OUT_WRITE(ZCOR_SS_PIN, HIGH);
 };
+void Zcor::probe(const float height) {
+    float previousValue;
+    float value;
+    LOOP_Z(axis) {
+        previousValue = 0;
+        value = -1;
+        while(value != previousValue) {
+            previousValue = value;
+            while(!readAxisPosition((AxisZEnum)axis, &value));
+        }
+        SERIAL_ECHOLNPAIR("probed axis: ", axis);
+        SERIAL_ECHOLNPAIR("got value: ", value);
+        SERIAL_ECHOLNPAIR("diff: ", height - value);
+    }
+}
 void Zcor::reset(){
     SERIAL_ECHOLNPGM("Z correction reset");
     correct(0);
@@ -40,14 +55,14 @@ void Zcor::correct(const float height){
     thermalManager.babystep_Zi(Z1_AXIS, csZr - currentCorrectionSteps[Z1_AXIS]);
     currentCorrectionSteps[Z1_AXIS] = csZr;
 };
-bool Zcor::readPosition(const uint8_t axis) {
+bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
     WRITE(SS_PIN, HIGH);
     WRITE(ZCOR_SS_PIN, LOW); // enable spi
     delay(100);
     // Request position pos continuously
     SERIAL_ECHOLNPGM("Request position");
-    spi.transfer(REQUEST_POSITION_READ(axis));
-    if(!spi.waitResponse(REQUEST_POSITION_STATUS,RESPONSE_POSITION_STATUS_OK(axis), ZCOR_SPI_TIMEOUT)) {
+    spi.transfer(REQUEST_POSITION_READ((int)axis));
+    if(!spi.waitResponse(REQUEST_POSITION_STATUS,RESPONSE_POSITION_STATUS_OK((int)axis), ZCOR_SPI_TIMEOUT)) {
         SERIAL_ECHOLNPGM("Position request timeout");
         return false;
     }
@@ -68,12 +83,13 @@ bool Zcor::readPosition(const uint8_t axis) {
         // delay(50);
     }
     WRITE(ZCOR_SS_PIN, HIGH); // disable spi
+    *position = avp.pos();
     return true;
 }
-void Zcor::test(uint8_t axis) {
+void Zcor::test(AxisZEnum axis) {
     SERIAL_ECHOLNPGM("Z correction test");
-    if(readPosition(axis)){
-        float value = avp.pos();
+    float value;
+    if(readAxisPosition(axis, &value)){
         SERIAL_ECHOLNPAIR("Got value: ", value);
     } else {
         SERIAL_ECHOLNPGM("Position read error");

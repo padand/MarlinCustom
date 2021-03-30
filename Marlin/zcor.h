@@ -9,11 +9,12 @@
 class Zcor {
     public:
         static void init();
+        static void probe(const float height);
         static void reset();
         static void correct(const float height);
-        static void test(uint8_t axis);
+        static void test(AxisZEnum axis);
         // reads the axis position; returns true if successfull
-        static bool readPosition(const uint8_t axis);
+        static bool readAxisPosition(const AxisZEnum axis, float *position);
 
     private:
         static int currentCorrectionSteps[ZZZ];
