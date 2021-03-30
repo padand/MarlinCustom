@@ -31,16 +31,9 @@ void Zcor::init(){
     OUT_WRITE(ZCOR_SS_PIN, HIGH);
 };
 void Zcor::probe(const float height) {
-    float previousValue;
     float value;
     LOOP_Z(axis) {
-        // reading two equal consecutive values is considered successful
-        previousValue = 0;
-        value = -1;
-        while(value != previousValue) {
-            previousValue = value;
-            while(!readAxisPosition((AxisZEnum)axis, &value));
-        }
+        while(!readAxisPosition((AxisZEnum)axis, &value));
         // verify correct initialization
         if (height == 0 && value != 0) {
             SERIAL_ECHOLNPGM("Make sure that both calipers show 0 at Z height 0");
