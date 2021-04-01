@@ -1,5 +1,6 @@
 #include "zcor.h"
 #include "temperature.h"
+#include "cardreader.h"
 
 Zcor zcor; // singleton
 
@@ -9,6 +10,10 @@ Zcor zcor; // singleton
 
 #ifndef ZCOR_SPI_TIMEOUT
     #define ZCOR_SPI_TIMEOUT 1500
+#endif
+
+#ifndef ZCOR_SPI_SPEED
+    #define ZCOR_SPI_SPEED SPI_SPEED_EIGHTH
 #endif
 
 #ifdef ZCOR_ENABLE_DEBUG
@@ -26,6 +31,7 @@ Zcor zcor; // singleton
 char CorrectionRequired::getSteps(AxisZEnum axis) {
     return steps[axis];
 }
+
 void CorrectionRequired::setSteps(AxisZEnum axis, char steps) {
     this->steps[axis] = steps;
 }
@@ -36,19 +42,53 @@ void CorrectionRequired::setSteps(AxisZEnum axis, char steps) {
 
 void Correction::setRequired(float height, const CorrectionRequired cr) {
     int index = height / float(ZCOR_LAYER_HEIGHT);
-    if (index >= requiredMax) index = requiredMax - 1;
+    if (index >= requiredLen) index = requiredLen - 1;
     required[index] = cr;
 };
 
 CorrectionRequired Correction::getRequired(float height) {
     int index = height / float(ZCOR_LAYER_HEIGHT);
-    if (index >= requiredMax) index = requiredMax - 1;
+    if (index >= requiredLen) index = requiredLen - 1;
     return required[index];
 };
 
+void Correction::sdWriteRequired() {
+    #if !ENABLED(SDSUPPORT)
+        SERIAL_ECHOLNPGM("Z correction store requires SD support");
+    #else
+
+    if(!card.cardOK) card.initsd();
+    if(!card.cardOK) {
+        SERIAL_ECHOLNPGM("There was a problem initializing SD card");
+        return;
+    }
+    if (card.isFileOpen()) card.closefile();
+    card.openFile(sdFileName, false);
+    if (!card.isFileOpen()) {
+        SERIAL_ECHOLNPGM("There was a problem opening the file");
+        return;
+    };
+        
+    for(unsigned int i=0; i<requiredLen; i++) {
+        LOOP_Z(axis) {
+            if(!card.write_byte(required[i].getSteps((AxisZEnum)axis))) {
+                SERIAL_ECHOLNPGM("There was a problem writing to the file");
+                i=requiredLen;
+                break;
+            };
+        }
+    }
+
+    card.closefile();
+    SERIAL_ECHOLNPGM("DONE SD write");
+
+    #endif
+}
+
 // PRIVATE
 
-CorrectionRequired Correction::required[requiredMax];
+CorrectionRequired Correction::required[requiredLen];
+char Correction::sdFileName[] = { ZCOR_FILENAME };
 
 //=============================================================== CLASS Zcor
 
@@ -57,24 +97,29 @@ CorrectionRequired Correction::required[requiredMax];
 void Zcor::init(){
     SERIAL_ECHOLNPGM("Z correction init");
     spi.init();
-    spi.setRate(SPI_EIGHTH_SPEED);
+    spi.setRate(ZCOR_SPI_SPEED);
     spi.setBitOrder(SPI_MSBFIRST);
     spi.setDataMode(SPI_MODE0);
-    OUT_WRITE(SS_PIN, HIGH);
     OUT_WRITE(ZCOR_SS_PIN, HIGH);
 };
 void Zcor::probe(const float height) {
     CorrectionRequired cr;
     float value;
     LOOP_Z(axis) {
-        while(!readAxisPosition((AxisZEnum)axis, &value));
+        if(!readAxisPosition((AxisZEnum)axis, &value)){
+            SERIAL_ECHOLNPGM("Halt probing due to position read error");
+            return;
+        };
         SERIAL_ECHOLNPAIR("probed axis: ", axis);
         SERIAL_ECHOLNPAIR("got value: ", value);
         SERIAL_ECHOLNPAIR("diff: ", height - value);
-        cr.setSteps((AxisZEnum)axis, height - value);
+        cr.setSteps((AxisZEnum)axis, LROUND((height - value) / float(ZCOR_UNIT)));
         correction.setRequired(height, cr);
     }
 }
+void Zcor::store(){
+    correction.sdWriteRequired();
+};
 void Zcor::correct(const float height){
     SERIAL_ECHOLNPAIR("Z correction correct at height ", height);
     const int csZr = height == 0 ? 0 : correctionStepsZr(height) * configured_microsteps[Z_AXIS];
@@ -82,7 +127,9 @@ void Zcor::correct(const float height){
     currentCorrectionSteps[Z1_AXIS] = csZr;
 };
 bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
-    WRITE(SS_PIN, HIGH);
+    #if ENABLED(SDSUPPORT)
+        WRITE(SDSS, HIGH); // disable sdcard spi
+    #endif
     WRITE(ZCOR_SS_PIN, LOW); // enable spi
     delay(100);
     // Request position pos continuously
@@ -90,6 +137,7 @@ bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
     spi.transfer(REQUEST_POSITION_READ((int)axis));
     if(!spi.waitResponse(REQUEST_POSITION_STATUS,RESPONSE_POSITION_STATUS_OK((int)axis), ZCOR_SPI_TIMEOUT)) {
         SERIAL_ECHOLNPGM("Position request timeout");
+        WRITE(ZCOR_SS_PIN, HIGH); // disable spi
         return false;
     }
     SERIAL_ECHOLNPGM("Position aquired");
@@ -100,6 +148,7 @@ bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
         if(millis() > timeout) {
             SERIAL_ECHOLNPGM("Position verify timeout");
             DEBUG_PAIR("last spi res: ", res);
+            WRITE(ZCOR_SS_PIN, HIGH); // disable spi
             return false;
         }
         res = spi.transfer(REQUEST_POSITION_DIGIT);
@@ -115,7 +164,9 @@ bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
 bool Zcor::verifyAllAxesAt0() {
     float value;
     LOOP_Z(axis) {
-        while(!readAxisPosition((AxisZEnum)axis, &value));
+        if(!readAxisPosition((AxisZEnum)axis, &value)){
+            return false;
+        };
         // verify correct initialization
         if (value != 0) {
             return false;            

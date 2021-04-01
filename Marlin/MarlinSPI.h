@@ -32,11 +32,11 @@
 #endif
 
 // SPI speed is F_CPU/2^(1 + index), 0 <= index <= 6
-uint8_t const SPI_FULL_SPEED = 0,         // Set SCK to max rate of F_CPU/2
-              SPI_HALF_SPEED = 1,         // Set SCK rate to F_CPU/4
-              SPI_QUARTER_SPEED = 2,      // Set SCK rate to F_CPU/8
-              SPI_EIGHTH_SPEED = 3,       // Set SCK rate to F_CPU/16
-              SPI_SIXTEENTH_SPEED = 4,    // Set SCK rate to F_CPU/32
+uint8_t const SPI_SPEED_FULL = 0,         // Set SCK to max rate of F_CPU/2
+              SPI_SPEED_HALF = 1,         // Set SCK rate to F_CPU/4
+              SPI_SPEED_QUARTER = 2,      // Set SCK rate to F_CPU/8
+              SPI_SPEED_EIGHTH = 3,       // Set SCK rate to F_CPU/16
+              SPI_SPEED_SIXTEENTH = 4,    // Set SCK rate to F_CPU/32
               SPI_MSBFIRST = 1,           // Set data order to most significant bit first
               SPI_LSBFIRST = 0,           // Set data order to least significant bit first
               SPI_MODE0 = 0,              // CPOL 0, CPHA 0

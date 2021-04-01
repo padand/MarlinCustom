@@ -220,11 +220,21 @@
 #define Z_STEP_CORRECTION
 #if ENABLED(Z_STEP_CORRECTION)
   #define ZCOR_ENABLE_DEBUG
+
+  // TODO: test running the SPI at a different speed than the SD or other devices
+  // Until then, make sure to match the SPI speed with the speed used by the SD
+  #define ZCOR_SPI_SPEED SPI_SPEED_EIGHTH
+  #define ZCOR_SPI_TIMEOUT 1500
+
+  // The file in which to store the correction data
+  #define ZCOR_FILENAME "zcor.txt"
+
+  // The minimal correction unit. Should equal the length of a full step
   #define ZCOR_UNIT 0.00625
+
   // TODO: sanity check ZCOR_Z_HEIGHT must be a whole multiple of ZCOR_LAYER_HEIGHT
   #define ZCOR_LAYER_HEIGHT 0.2
   #define ZCOR_Z_HEIGHT 2
-  #define ZCOR_SPI_TIMEOUT 1500
   #define ZCOR_CALIBRATE__AT_X 95
   #define ZCOR_CALIBRATE__AT_Y 95
 #endif
@@ -1832,7 +1842,7 @@
  * you must uncomment the following option or it won't work.
  *
  */
-//#define SDSUPPORT
+#define SDSUPPORT
 
 /**
  * SD CARD: SPI SPEED
@@ -1842,7 +1852,7 @@
  */
 //#define SPI_SPEED SPI_HALF_SPEED
 //#define SPI_SPEED SPI_QUARTER_SPEED
-//#define SPI_SPEED SPI_EIGHTH_SPEED
+#define SPI_SPEED SPI_EIGHTH_SPEED
 
 /**
  * SD CARD: ENABLE CRC

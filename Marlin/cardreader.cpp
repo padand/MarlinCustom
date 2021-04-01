@@ -267,7 +267,7 @@ void CardReader::initsd() {
   ) {
     //if (!sd2card.init(SPI_HALF_SPEED,SDSS))
     SERIAL_ECHO_START();
-    SERIAL_ECHOLNPGM(MSG_SD_INIT_FAIL);
+    SERIAL_ECHOLNPAIR(MSG_SD_INIT_FAIL " - code ", sd2card.errorCode());
   }
   else if (!volume.init(&sd2card)) {
     SERIAL_ERROR_START();
@@ -484,6 +484,12 @@ void CardReader::write_command(char *buf) {
     SERIAL_ERROR_START();
     SERIAL_ERRORLNPGM(MSG_SD_ERR_WRITE_TO_FILE);
   }
+}
+
+bool CardReader::write_byte(uint8_t b) {
+  file.writeError = false;
+  file.write(b);
+  return !file.writeError;
 }
 
 //

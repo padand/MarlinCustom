@@ -6890,7 +6890,8 @@ void report_xyz_from_stepper_position() {
  */
 #if ENABLED(Z_STEP_CORRECTION)
 
-  bool z_correction_scheduled = false;
+  bool z_correction_schedule_probe = false;
+  bool z_correction_schedule_store = false;
 
   inline void gcode_M13() {
     if (parser.seenval('T')) {
@@ -6911,17 +6912,20 @@ void report_xyz_from_stepper_position() {
         SERIAL_ECHOLNPGM("Make sure that each Z axis is in it's origin position, then turn on calipers at 0.00");
         enqueue_and_echo_commands_P(PSTR("G91\nG28 X0 Y0\nG1 X" STRINGIFY(ZCOR_CALIBRATE__AT_X) " Y" STRINGIFY(ZCOR_CALIBRATE__AT_Y) " F6000\nG28 Z0\nG90"));
       } else if (sValue == 2 && IsRunning()) {
-        z_correction_scheduled = true;
+        z_correction_schedule_probe = true;
+      } else if (sValue == 3) {
+        z_correction_schedule_store = true;
       }
     } else {
       // usage
       SERIAL_ECHOLNPGM("M13 T[1-9] : Z correction test; prints the position of the axis identified by T");
       SERIAL_ECHOLNPGM("M13 S1 : Stage 1 of Z correction. Moves the XY to bed center and homes Z. After that, you need to make sure that each Z axis is in it's origin position and turn on the calipers at 0.00");
       SERIAL_ECHOLNPGM("M13 S2 : Stage 2 of Z correction. Runs the correction algorithm up to height ZCOR_Z_HEIGHT (" STRINGIFY(ZCOR_Z_HEIGHT) ") for a layer height ZCOR_LAYER_HEIGHT ( " STRINGIFY(ZCOR_LAYER_HEIGHT) " )");
+      SERIAL_ECHOLNPGM("M13 S3 : Stage 3 of Z correction. Store the new results");
     }
   }
 
-  inline void do_z_correction() {
+  inline void probe_z_correction() {
     if(!zcor.verifyAllAxesAt0()) {
       SERIAL_ECHOLNPGM("Make sure that both calipers show 0 at Z height 0");
       return;
@@ -6939,6 +6943,11 @@ void report_xyz_from_stepper_position() {
       zcor.probe(z);
     }
   }
+
+  inline void store_z_correction() {
+    zcor.store();
+  }
+
 #endif
 
 /**
@@ -15391,10 +15400,16 @@ void loop() {
   #endif // SDSUPPORT
 
   #if ENABLED(Z_STEP_CORRECTION)
-    if(z_correction_scheduled) {
-      do_z_correction();
-      z_correction_scheduled = false;
+    if(z_correction_schedule_probe) {
+      z_correction_schedule_probe = false;
+      probe_z_correction();
     }
+    if(z_correction_schedule_store) {
+      z_correction_schedule_store = false;
+      store_z_correction();
+    }
+    
+
   #endif
 
   if (commands_in_queue < BUFSIZE) get_available_commands();

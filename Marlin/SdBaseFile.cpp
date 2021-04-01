@@ -1630,6 +1630,7 @@ bool SdBaseFile::truncate(uint32_t length) {
  *
  */
 int16_t SdBaseFile::write(const void* buf, uint16_t nbyte) {
+  uint8_t failCode;
   // convert void* to uint8_t*  -  must be before goto statements
   const uint8_t* src = reinterpret_cast<const uint8_t*>(buf);
 
@@ -1637,11 +1638,17 @@ int16_t SdBaseFile::write(const void* buf, uint16_t nbyte) {
   uint16_t nToWrite = nbyte;
 
   // error if not a normal file or is read-only
-  if (!isFile() || !(flags_ & O_WRITE)) goto FAIL;
+  if (!isFile() || !(flags_ & O_WRITE)) {
+    failCode = 1;
+    goto FAIL;
+  }
 
   // seek to end of file if append flag
   if ((flags_ & O_APPEND) && curPosition_ != fileSize_) {
-    if (!seekEnd()) goto FAIL;
+    if (!seekEnd()) {
+      failCode = 2;
+      goto FAIL;
+    }
   }
 
   while (nToWrite > 0) {
@@ -1652,7 +1659,10 @@ int16_t SdBaseFile::write(const void* buf, uint16_t nbyte) {
       if (curCluster_ == 0) {
         if (firstCluster_ == 0) {
           // allocate first cluster of file
-          if (!addCluster()) goto FAIL;
+          if (!addCluster()) {
+            failCode = 3;
+            goto FAIL;
+          }
         }
         else {
           curCluster_ = firstCluster_;
@@ -1660,10 +1670,16 @@ int16_t SdBaseFile::write(const void* buf, uint16_t nbyte) {
       }
       else {
         uint32_t next;
-        if (!vol_->fatGet(curCluster_, &next)) goto FAIL;
+        if (!vol_->fatGet(curCluster_, &next)) {
+          failCode = 4;
+          goto FAIL;
+        }
         if (vol_->isEOC(next)) {
           // add cluster if at end of chain
-          if (!addCluster()) goto FAIL;
+          if (!addCluster()) {
+            failCode = 5;
+            goto FAIL;
+          }
         }
         else {
           curCluster_ = next;
@@ -1684,18 +1700,27 @@ int16_t SdBaseFile::write(const void* buf, uint16_t nbyte) {
         // invalidate cache if block is in cache
         vol_->cacheSetBlockNumber(0xFFFFFFFF, false);
       }
-      if (!vol_->writeBlock(block, src)) goto FAIL;
+      if (!vol_->writeBlock(block, src)) {
+        failCode = 6;
+        goto FAIL;
+      }
     }
     else {
       if (blockOffset == 0 && curPosition_ >= fileSize_) {
         // start of new block don't need to read into cache
-        if (!vol_->cacheFlush()) goto FAIL;
+        if (!vol_->cacheFlush()) {
+          failCode = 7;
+          goto FAIL;
+        }
         // set cache dirty and SD address of block
         vol_->cacheSetBlockNumber(block, true);
       }
       else {
         // rewrite part of block
-        if (!vol_->cacheRawBlock(block, SdVolume::CACHE_FOR_WRITE)) goto FAIL;
+        if (!vol_->cacheRawBlock(block, SdVolume::CACHE_FOR_WRITE)) {
+          failCode = 8;
+          goto FAIL;
+        }
       }
       uint8_t* dst = vol_->cache()->data + blockOffset;
       memcpy(dst, src, n);
@@ -1715,12 +1740,16 @@ int16_t SdBaseFile::write(const void* buf, uint16_t nbyte) {
   }
 
   if (flags_ & O_SYNC) {
-    if (!sync()) goto FAIL;
+    if (!sync()) {
+      failCode = 9;
+      goto FAIL;
+    }
   }
   return nbyte;
 
   FAIL:
   // return for write error
+  SERIAL_ECHOLNPAIR("Fail code: ", failCode);
   writeError = true;
   return -1;
 }
