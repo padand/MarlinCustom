@@ -492,6 +492,11 @@ bool CardReader::write_byte(uint8_t b) {
   return !file.writeError;
 }
 
+bool CardReader::read_byte(uint8_t *b) {
+  *b = file.read();
+  return *b != -1;
+}
+
 //
 // Run the next autostart file. Called:
 // - On boot after successful card init

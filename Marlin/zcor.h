@@ -19,6 +19,7 @@ class Correction {
         static void setRequired(float height, const CorrectionRequired cr);
         static CorrectionRequired getRequired(float height);
         static void sdWriteRequired();
+        static void sdReadRequired();
     private:
         static const int requiredLen = int(float(ZCOR_Z_HEIGHT)/float(ZCOR_LAYER_HEIGHT));
         static CorrectionRequired required[requiredLen];
@@ -30,6 +31,7 @@ class Zcor {
         static void init();
         static void probe(const float height);
         static void store();
+        static void restore();
         static void correct(const float height);
         // reads the axis position; returns true if successfull
         static bool readAxisPosition(const AxisZEnum axis, float *position);

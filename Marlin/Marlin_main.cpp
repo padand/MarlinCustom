@@ -6892,6 +6892,7 @@ void report_xyz_from_stepper_position() {
 
   bool z_correction_schedule_probe = false;
   bool z_correction_schedule_store = false;
+  bool z_correction_schedule_restore = false;
 
   inline void gcode_M13() {
     if (parser.seenval('T')) {
@@ -6915,13 +6916,16 @@ void report_xyz_from_stepper_position() {
         z_correction_schedule_probe = true;
       } else if (sValue == 3) {
         z_correction_schedule_store = true;
+      } else if (sValue == 0) {
+        z_correction_schedule_restore = true;
       }
     } else {
       // usage
       SERIAL_ECHOLNPGM("M13 T[1-9] : Z correction test; prints the position of the axis identified by T");
       SERIAL_ECHOLNPGM("M13 S1 : Stage 1 of Z correction. Moves the XY to bed center and homes Z. After that, you need to make sure that each Z axis is in it's origin position and turn on the calipers at 0.00");
       SERIAL_ECHOLNPGM("M13 S2 : Stage 2 of Z correction. Runs the correction algorithm up to height ZCOR_Z_HEIGHT (" STRINGIFY(ZCOR_Z_HEIGHT) ") for a layer height ZCOR_LAYER_HEIGHT ( " STRINGIFY(ZCOR_LAYER_HEIGHT) " )");
-      SERIAL_ECHOLNPGM("M13 S3 : Stage 3 of Z correction. Store the new results");
+      SERIAL_ECHOLNPGM("M13 S3 : Stage 3 of Z correction. Store the correction data to SD card");
+      SERIAL_ECHOLNPGM("M13 S0 : Restore the correction data from SD card");
     }
   }
 
@@ -6946,6 +6950,10 @@ void report_xyz_from_stepper_position() {
 
   inline void store_z_correction() {
     zcor.store();
+  }
+
+  inline void restore_z_correction() {
+    zcor.restore();
   }
 
 #endif
@@ -15407,6 +15415,10 @@ void loop() {
     if(z_correction_schedule_store) {
       z_correction_schedule_store = false;
       store_z_correction();
+    }
+    if(z_correction_schedule_restore) {
+      z_correction_schedule_restore = false;
+      restore_z_correction();
     }
     
 

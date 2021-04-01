@@ -85,6 +85,42 @@ void Correction::sdWriteRequired() {
     #endif
 }
 
+void Correction::sdReadRequired() {
+    #if !ENABLED(SDSUPPORT)
+        SERIAL_ECHOLNPGM("Z correction store requires SD support");
+    #else
+
+    if(!card.cardOK) card.initsd();
+    if(!card.cardOK) {
+        SERIAL_ECHOLNPGM("There was a problem initializing SD card");
+        return;
+    }
+    if (card.isFileOpen()) card.closefile();
+    card.openFile(sdFileName, true);
+    if (!card.isFileOpen()) {
+        SERIAL_ECHOLNPGM("There was a problem opening the file");
+        return;
+    };
+
+    uint8_t b;
+        
+    for(unsigned int i=0; i<requiredLen; i++) {
+        LOOP_Z(axis) {
+            if(!card.read_byte(&b)) {
+                SERIAL_ECHOLNPGM("There was a problem reading the file");
+                i=requiredLen;
+                break;
+            };
+            required[i].setSteps((AxisZEnum)axis, b);
+        }
+    }
+
+    card.closefile();
+    SERIAL_ECHOLNPGM("DONE SD read");
+
+    #endif
+}
+
 // PRIVATE
 
 CorrectionRequired Correction::required[requiredLen];
@@ -119,6 +155,9 @@ void Zcor::probe(const float height) {
 }
 void Zcor::store(){
     correction.sdWriteRequired();
+};
+void Zcor::restore(){
+    correction.sdReadRequired();
 };
 void Zcor::correct(const float height){
     SERIAL_ECHOLNPAIR("Z correction correct at height ", height);
