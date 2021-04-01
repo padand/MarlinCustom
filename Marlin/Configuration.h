@@ -231,6 +231,8 @@
 
   // The minimal correction unit. Should equal the length of a full step
   #define ZCOR_UNIT 0.00625
+  // The delay (ms) required for an axis to "settle" before reading the value
+  #define ZCOR_SETTLE_DELAY 500
 
   // TODO: sanity check ZCOR_Z_HEIGHT must be a whole multiple of ZCOR_LAYER_HEIGHT
   #define ZCOR_LAYER_HEIGHT 0.2

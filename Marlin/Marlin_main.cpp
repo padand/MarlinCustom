@@ -4444,7 +4444,7 @@ inline void gcode_G28(const bool always_home_all) {
 
   #if ENABLED(Z_STEP_CORRECTION)
     if (home_all || homeZ) {
-      zcor.correct(0);
+      zcor.reset();
     }
   #endif
 
@@ -6946,6 +6946,7 @@ void report_xyz_from_stepper_position() {
       planner.synchronize();
       zcor.probe(z);
     }
+    SERIAL_ECHOLNPGM("Probe DONE");
   }
 
   inline void store_z_correction() {

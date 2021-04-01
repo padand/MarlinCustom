@@ -33,14 +33,14 @@ class Zcor {
         static void store();
         static void restore();
         static void correct(const float height);
+        static void reset();
         // reads the axis position; returns true if successfull
         static bool readAxisPosition(const AxisZEnum axis, float *position);
         static bool verifyAllAxesAt0();
 
     private:
-        static int currentCorrectionSteps[ZZZ];
+        static char currentCorrectionSteps[ZZZ];
         static const uint8_t configured_microsteps[];
-        static int correctionStepsZr(const float height);
         static SPI<MISO_PIN, MOSI_PIN, SCK_PIN> spi;
         static AxisValueParser avp;
         static Correction correction;

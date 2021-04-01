@@ -545,6 +545,13 @@ class Temperature {
             babystepsTodoZ[i] += distance;
           }
         }
+        static bool babystep_Zi_in_progress() {
+          LOOP_Z(axis) {
+            const int curTodo = babystepsTodoZ[axis];
+            if(curTodo) return true;
+          }
+          return false;
+        }
       #endif
 
     #endif // BABYSTEPPING
