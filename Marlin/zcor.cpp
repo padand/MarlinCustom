@@ -138,47 +138,53 @@ void Zcor::init(){
     spi.setDataMode(SPI_MODE0);
     OUT_WRITE(ZCOR_SS_PIN, HIGH);
 };
-void Zcor::probe(const float height) {
+bool Zcor::probe(const float height) {
     CorrectionRequired cr;
     float value;
 
     // COARSE CORRECTION
     // read the corse correction values
-    delay(ZCOR_SETTLE_DELAY);
+    settle();
     SERIAL_ECHOLNPGM("Coarse correction");
     LOOP_Z(axis) {
         if(!readAxisPosition((AxisZEnum)axis, &value)){
             SERIAL_ECHOLNPGM("Halt probing due to position read error");
-            return;
-        };
+            return false;
+        }
         cr.setSteps((AxisZEnum)axis, LROUND((height - value) / float(ZCOR_UNIT)));
     }
     // apply the coarse correction steps
     LOOP_Z(axis){
         thermalManager.babystep_Zi((AxisZEnum)axis, cr.getSteps((AxisZEnum)axis) * configured_microsteps[Z_AXIS]);
     }
-    while(thermalManager.babystep_Zi_in_progress()) safe_delay(100);
+    while(thermalManager.babystep_Zi_in_progress()) idle();
 
     // FINE CORRECTION
-    delay(ZCOR_SETTLE_DELAY);
+    settle();
     SERIAL_ECHOLNPGM("Fine correction");
     bool isFine = false;
-    char fineStep;
+    char step;
     while(!isFine) {
         isFine = true;
         LOOP_Z(axis) {
             if(!readAxisPosition((AxisZEnum)axis, &value)){
                 SERIAL_ECHOLNPGM("Halt probing due to position read error");
-                return;
-            };
-            fineStep = (height - value) * 100;
-            SERIAL_ECHOPAIR("Fine step: ", (int)fineStep);
-            if (fineStep != 0) {
+                return false;
+            }
+            if(fabs(height-value) < 0.005f){
+                step = 0;
+            } else if(height > value) {
+                step = 1;
+            } else {
+                step = -1;
+            }
+            if (step != 0) {
                 isFine = false;
-                cr.setSteps((AxisZEnum)axis, cr.getSteps((AxisZEnum)axis) + fineStep);
-                thermalManager.babystep_Zi((AxisZEnum)axis, fineStep * configured_microsteps[Z_AXIS]);
-                while(thermalManager.babystep_Zi_in_progress()) safe_delay(100);
-                delay(ZCOR_SETTLE_DELAY);
+                SERIAL_ECHOLNPAIR("Fine step: ", (int)step);
+                cr.setSteps((AxisZEnum)axis, cr.getSteps((AxisZEnum)axis) + step);
+                thermalManager.babystep_Zi((AxisZEnum)axis, step * configured_microsteps[Z_AXIS]);
+                while(thermalManager.babystep_Zi_in_progress()) idle();
+                settle();
             }
         }
     }
@@ -187,10 +193,12 @@ void Zcor::probe(const float height) {
     LOOP_Z(axis) {
         thermalManager.babystep_Zi((AxisZEnum)axis, (-1) * cr.getSteps((AxisZEnum)axis) * configured_microsteps[Z_AXIS]);
     }
-    while(thermalManager.babystep_Zi_in_progress()) safe_delay(100);
+    while(thermalManager.babystep_Zi_in_progress()) idle();
 
     // record the results
     correction.setRequired(height, cr);
+
+    return true;
 }
 void Zcor::store(){
     correction.sdWriteRequired();
@@ -214,6 +222,7 @@ bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
     #if ENABLED(SDSUPPORT)
         WRITE(SDSS, HIGH); // disable sdcard spi
     #endif
+    delay(100);
     WRITE(ZCOR_SS_PIN, LOW); // enable spi
     delay(100);
     // Request position pos continuously
@@ -260,6 +269,11 @@ bool Zcor::verifyAllAxesAt0() {
 };
 
 // PRIVATE
+
+void Zcor::settle() {
+    unsigned long time = millis() + ZCOR_SETTLE_DELAY;
+    while (PENDING(millis(), time)) idle();
+}
 
 const uint8_t Zcor::configured_microsteps[] = MICROSTEP_MODES;
 

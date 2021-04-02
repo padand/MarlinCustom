@@ -6944,7 +6944,10 @@ void report_xyz_from_stepper_position() {
       destination[Z_AXIS] = LOGICAL_TO_NATIVE(z, Z_AXIS);
       prepare_move_to_destination();
       planner.synchronize();
-      zcor.probe(z);
+      if(!zcor.probe(z)) {
+        SERIAL_ECHOLNPGM("Probe ERROR");
+        break;
+      };
     }
     SERIAL_ECHOLNPGM("Probe DONE");
   }
