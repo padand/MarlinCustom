@@ -21,7 +21,7 @@ class Correction {
         static void sdWriteRequired();
         static void sdReadRequired();
     private:
-        static const int requiredLen = int(float(ZCOR_Z_HEIGHT)/float(ZCOR_LAYER_HEIGHT));
+        static const int requiredLen = round(float(ZCOR_Z_HEIGHT)/float(ZCOR_LAYER_HEIGHT)) + 1;
         static CorrectionRequired required[requiredLen];
         static char sdFileName[];
 };

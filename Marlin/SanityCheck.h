@@ -490,6 +490,8 @@ static_assert(X_MAX_LENGTH >= X_BED_SIZE && Y_MAX_LENGTH >= Y_BED_SIZE,
     #error "Z_STEP_CORRECTION currently works with Z_DUAL_STEPPER_DRIVERS only"
   #elif ENABLED(NANODLP_Z_SYNC)
     #error "Z_STEP_CORRECTION compatibility with NANODLP_Z_SYNC is uncertain"
+  #elif ZCOR_Z_HEIGHT > Z_MAX_POS
+    #error "ZCOR_Z_HEIGHT exceeds machine limit"
   #endif
   constexpr int z_drivers[] = ZCOR_Z_DRIVERS;
   static_assert(COUNT(z_drivers) == ZZZ, "ZCOR_Z_DRIVERS needs to contain " STRINGIFY(ZZZ) " drivers, one for each Z axis");

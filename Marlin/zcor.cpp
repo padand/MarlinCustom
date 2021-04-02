@@ -41,14 +41,13 @@ void CorrectionRequired::setSteps(AxisZEnum axis, char steps) {
 // PUBLIC
 
 void Correction::setRequired(float height, const CorrectionRequired cr) {
-    int index = height / float(ZCOR_LAYER_HEIGHT);
-    if (index >= requiredLen) index = requiredLen - 1;
-    required[index] = cr;
+    int index = round(height / float(ZCOR_LAYER_HEIGHT));
+    if (index < requiredLen) required[index] = cr;
 };
 
 CorrectionRequired Correction::getRequired(float height) {
-    int index = height / float(ZCOR_LAYER_HEIGHT);
-    if (index >= requiredLen) index = requiredLen - 1;
+    int index = round(height / float(ZCOR_LAYER_HEIGHT));
+    if (index >= requiredLen) index = 0;
     return required[index];
 };
 
@@ -151,7 +150,7 @@ bool Zcor::probe(const float height) {
             SERIAL_ECHOLNPGM("Halt probing due to position read error");
             return false;
         }
-        cr.setSteps((AxisZEnum)axis, LROUND((height - value) / float(ZCOR_UNIT)));
+        cr.setSteps((AxisZEnum)axis, round((height - value) / float(ZCOR_UNIT)));
     }
     // apply the coarse correction steps
     LOOP_Z(axis){
@@ -171,7 +170,7 @@ bool Zcor::probe(const float height) {
                 SERIAL_ECHOLNPGM("Halt probing due to position read error");
                 return false;
             }
-            if(fabs(height-value) < 0.005f){
+            if(fabs(height-value) < float(ZCOR_UNIT)/2.0f){
                 step = 0;
             } else if(height > value) {
                 step = 1;

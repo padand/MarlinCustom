@@ -6939,12 +6939,14 @@ void report_xyz_from_stepper_position() {
     // set movement speed
     feedrate_mm_s = MMM_TO_MMS(200.0f);
     // loop over each layer
-    for(float z=0; z<=float(ZCOR_Z_HEIGHT); z+=float(ZCOR_LAYER_HEIGHT)) {
-      SERIAL_ECHOLNPAIR("Move to Z: ", z);
-      destination[Z_AXIS] = LOGICAL_TO_NATIVE(z, Z_AXIS);
+    float height;
+    for(int z=0; z<=round(float(ZCOR_Z_HEIGHT)/float(ZCOR_RESOLUTION)); z+=round(float(ZCOR_LAYER_HEIGHT)/float(ZCOR_RESOLUTION))) {
+      height = float(z) * float(ZCOR_RESOLUTION);
+      SERIAL_ECHOLNPAIR("Move to Z: ", height);
+      destination[Z_AXIS] = LOGICAL_TO_NATIVE(height, Z_AXIS);
       prepare_move_to_destination();
       planner.synchronize();
-      if(!zcor.probe(z)) {
+      if(!zcor.probe(height)) {
         SERIAL_ECHOLNPGM("Probe ERROR");
         break;
       };
