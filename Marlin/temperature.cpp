@@ -149,7 +149,7 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
 
 #if ENABLED(BABYSTEPPING)
   volatile int Temperature::babystepsTodo[XYZ] = { 0 };
-  #if HAS_Z2_ENABLE
+  #if ENABLED(Z_STEP_CORRECTION)
     volatile int Temperature::babystepsTodoZ[ZZZ] = { 0 };
   #endif
 #endif
@@ -2296,7 +2296,7 @@ void Temperature::isr() {
                     else babystepsTodo[axis]++;
       }
     }
-    #if HAS_Z2_ENABLE
+    #if ENABLED(Z_STEP_CORRECTION)
       LOOP_Z(axis) {
         const int curTodo = babystepsTodoZ[axis]; // get rid of volatile for performance
         if (curTodo) {

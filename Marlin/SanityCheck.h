@@ -491,6 +491,8 @@ static_assert(X_MAX_LENGTH >= X_BED_SIZE && Y_MAX_LENGTH >= Y_BED_SIZE,
   #elif ENABLED(NANODLP_Z_SYNC)
     #error "Z_STEP_CORRECTION compatibility with NANODLP_Z_SYNC is uncertain"
   #endif
+  constexpr int z_drivers[] = ZCOR_Z_DRIVERS;
+  static_assert(COUNT(z_drivers) == ZZZ, "ZCOR_Z_DRIVERS needs to contain " STRINGIFY(ZZZ) " drivers, one for each Z axis");
 #endif
 
 /**

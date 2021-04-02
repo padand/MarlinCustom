@@ -10084,6 +10084,10 @@ inline void gcode_M226() {
     }
   #endif
 
+  #if ENABLED(Z_STEP_CORRECTION)
+    const uint8_t zcor_z_drivers[] = ZCOR_Z_DRIVERS;
+  #endif
+
   /**
    * M290: Babystepping
    */
@@ -10100,28 +10104,27 @@ inline void gcode_M226() {
         }
     #else
       if (parser.seenval('Z') || parser.seenval('S')) {
-        const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
-        thermalManager.babystep_axis(Z_AXIS, offs * planner.axis_steps_per_mm[Z_AXIS]);
-        #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-          if (!parser.seen('P') || parser.value_bool()) mod_zprobe_zoffset(offs);
+        #if !ENABLED(Z_STEP_CORRECTION)
+          const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
+          thermalManager.babystep_axis(Z_AXIS, offs * planner.axis_steps_per_mm[Z_AXIS]);
+          #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+            if (!parser.seen('P') || parser.value_bool()) mod_zprobe_zoffset(offs);
+          #endif
+        #else
+          const int16_t steps = constrain(parser.value_int(), -1, 1);
+          SERIAL_ECHOLNPAIR("Babystep Z: ", steps);
+          if(parser.seenval('I')) {
+            const uint8_t i = constrain(parser.value_int(), 0, int(COUNT(zcor_z_drivers) - 1));
+            SERIAL_ECHOLNPAIR("Babystep I: ", i);
+            stepper.microstep_mode(zcor_z_drivers[i], 1);
+            thermalManager.babystep_Zi((AxisZEnum)i, steps);
+            while(thermalManager.babystep_Zi_in_progress()) idle();
+            stepper.microstep_mode(zcor_z_drivers[i], configured_microsteps[zcor_z_drivers[i]]);
+          } else {
+            SERIAL_ECHOLNPGM("With Z_STEP_CORRECTION, babystep must be used per each Z axis individually, only at calibration time");
+          }
         #endif
       }
-      #if HAS_Z2_ENABLE
-        if (parser.seenval('L')) {
-          const int16_t steps = parser.value_int();
-          SERIAL_ECHO_START();
-          SERIAL_ECHOPAIR("Babystep left: ", steps);
-          SERIAL_EOL();
-          thermalManager.babystep_Zi(Z1_AXIS, steps * configured_microsteps[Z_AXIS]);
-        }
-        if (parser.seenval('R')) {
-          const int16_t steps = parser.value_int();
-          SERIAL_ECHO_START();
-          SERIAL_ECHOPAIR("Babystep right: ", steps);
-          SERIAL_EOL();
-          thermalManager.babystep_Zi(Z2_AXIS, steps * configured_microsteps[Z_AXIS]);
-        }
-      #endif
     #endif
   }
 

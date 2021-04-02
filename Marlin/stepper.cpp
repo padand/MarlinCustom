@@ -2373,7 +2373,7 @@ void Stepper::report_positions() {
     sei();
   }
 
-  #if HAS_Z2_ENABLE
+  #if ENABLED(Z_STEP_CORRECTION)
     // MUST ONLY BE CALLED BY AN ISR,
     // No other ISR should ever interrupt this!
     void Stepper::babystepZi(const AxisZEnum i, const bool direction) {

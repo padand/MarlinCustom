@@ -239,6 +239,8 @@
   #define ZCOR_Z_HEIGHT 2
   #define ZCOR_CALIBRATE__AT_X 95
   #define ZCOR_CALIBRATE__AT_Y 95
+
+  #define ZCOR_Z_DRIVERS { 2, 4 }
 #endif
 
 /**

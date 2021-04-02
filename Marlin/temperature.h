@@ -169,7 +169,7 @@ class Temperature {
 
     #if ENABLED(BABYSTEPPING)
       static volatile int babystepsTodo[XYZ];
-      #if HAS_Z2_ENABLE
+      #if ENABLED(Z_STEP_CORRECTION)
         static volatile int babystepsTodoZ[ZZZ];
       #endif
     #endif
@@ -539,7 +539,7 @@ class Temperature {
         }
       }
 
-      #if HAS_Z2_ENABLE
+      #if ENABLED(Z_STEP_CORRECTION)
         static void babystep_Zi(const AxisZEnum i, const int16_t distance) {
           if (TEST(axis_known_position, Z_AXIS)) {
             babystepsTodoZ[i] += distance;
