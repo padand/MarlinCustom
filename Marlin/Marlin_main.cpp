@@ -6923,7 +6923,7 @@ void report_xyz_from_stepper_position() {
       // usage
       SERIAL_ECHOLNPGM("M13 T[1-9] : Z correction test; prints the position of the axis identified by T");
       SERIAL_ECHOLNPGM("M13 S1 : Stage 1 of Z correction. Moves the XY to bed center and homes Z. After that, you need to make sure that each Z axis is in it's origin position and turn on the calipers at 0.00");
-      SERIAL_ECHOLNPGM("M13 S2 : Stage 2 of Z correction. Runs the correction algorithm up to height ZCOR_Z_HEIGHT (" STRINGIFY(ZCOR_Z_HEIGHT) ") for a layer height ZCOR_LAYER_HEIGHT ( " STRINGIFY(ZCOR_LAYER_HEIGHT) " )");
+      SERIAL_ECHOLNPGM("M13 S2 : Stage 2 of Z correction. Runs the correction algorithm up to height ZCOR_Z_HEIGHT (" STRINGIFY(ZCOR_Z_HEIGHT) ") for a layer height ZCOR_LAYER_HEIGHT (" STRINGIFY(ZCOR_LAYER_HEIGHT) "). Send any command to cancel (the probed values will still remain in RAM).");
       SERIAL_ECHOLNPGM("M13 S3 : Stage 3 of Z correction. Store the correction data to SD card");
       SERIAL_ECHOLNPGM("M13 S0 : Restore the correction data from SD card");
     }
@@ -6941,6 +6941,9 @@ void report_xyz_from_stepper_position() {
     // loop over each layer
     float height;
     for(int z=0; z<=round(float(ZCOR_Z_HEIGHT)/float(ZCOR_RESOLUTION)); z+=round(float(ZCOR_LAYER_HEIGHT)/float(ZCOR_RESOLUTION))) {
+      if(commands_in_queue) {
+        break;
+      }
       height = float(z) * float(ZCOR_RESOLUTION);
       SERIAL_ECHOLNPAIR("Move to Z: ", height);
       destination[Z_AXIS] = LOGICAL_TO_NATIVE(height, Z_AXIS);
@@ -6951,7 +6954,11 @@ void report_xyz_from_stepper_position() {
         break;
       };
     }
-    SERIAL_ECHOLNPGM("Probe DONE");
+    if (commands_in_queue) {
+      SERIAL_ECHOLNPGM("Probe CANCELLED (got an incomming command)");
+    } else {
+      SERIAL_ECHOLNPGM("Probe DONE");
+    }
   }
 
   inline void store_z_correction() {
@@ -10119,6 +10126,7 @@ inline void gcode_M226() {
             const uint8_t i = constrain(parser.value_int(), 0, int(COUNT(zcor_z_drivers) - 1));
             SERIAL_ECHOLNPAIR("Babystep I: ", i);
             stepper.microstep_mode(zcor_z_drivers[i], 1);
+            delay(50); // give the driver a little time to process, just to be safe
             thermalManager.babystep_Zi((AxisZEnum)i, steps);
             while(thermalManager.babystep_Zi_in_progress()) idle();
             stepper.microstep_mode(zcor_z_drivers[i], configured_microsteps[zcor_z_drivers[i]]);

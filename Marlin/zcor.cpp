@@ -142,9 +142,8 @@ bool Zcor::probe(const float height) {
     float value;
 
     // COARSE CORRECTION
-    // read the corse correction values
+    // read the coarse correction values
     settle();
-    SERIAL_ECHOLNPGM("Coarse correction");
     LOOP_Z(axis) {
         if(!readAxisPosition((AxisZEnum)axis, &value)){
             SERIAL_ECHOLNPGM("Halt probing due to position read error");
@@ -160,7 +159,6 @@ bool Zcor::probe(const float height) {
 
     // FINE CORRECTION
     settle();
-    SERIAL_ECHOLNPGM("Fine correction");
     bool isFine = false;
     char step;
     while(!isFine) {
@@ -179,7 +177,6 @@ bool Zcor::probe(const float height) {
             }
             if (step != 0) {
                 isFine = false;
-                SERIAL_ECHOLNPAIR("Fine step: ", (int)step);
                 cr.setSteps((AxisZEnum)axis, cr.getSteps((AxisZEnum)axis) + step);
                 thermalManager.babystep_Zi((AxisZEnum)axis, step * configured_microsteps[Z_AXIS]);
                 while(thermalManager.babystep_Zi_in_progress()) idle();
@@ -213,6 +210,7 @@ void Zcor::correct(const float height){
     }
 };
 void Zcor::reset() {
+    SERIAL_ECHOLNPGM("Z correction reset");
     LOOP_Z(axis) {
         currentCorrectionSteps[axis] = 0;
     }
@@ -225,14 +223,12 @@ bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
     WRITE(ZCOR_SS_PIN, LOW); // enable spi
     delay(100);
     // Request position pos continuously
-    SERIAL_ECHOLNPGM("Request position");
     spi.transfer(REQUEST_POSITION_READ((int)axis));
     if(!spi.waitResponse(REQUEST_POSITION_STATUS,RESPONSE_POSITION_STATUS_OK((int)axis), ZCOR_SPI_TIMEOUT)) {
         SERIAL_ECHOLNPGM("Position request timeout");
         WRITE(ZCOR_SS_PIN, HIGH); // disable spi
         return false;
     }
-    SERIAL_ECHOLNPGM("Position aquired");
     uint8_t res;
     avp.init();
     unsigned long timeout = ZCOR_SPI_TIMEOUT + millis(); 
