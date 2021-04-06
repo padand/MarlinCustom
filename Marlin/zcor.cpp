@@ -24,6 +24,8 @@ Zcor zcor; // singleton
   #define DEBUG_PAIR(msg, data)
 #endif
 
+#define POS_TO_AXIS(pos) (pos + 1)
+
 //=============================================================== CLASS CorrectionRequired
 
 // PUBLIC
@@ -196,6 +198,36 @@ bool Zcor::probe(const float height) {
 
     return true;
 }
+bool Zcor::tune(const float height, bool *tuned) {
+    CorrectionRequired cr = correction.getRequired(height);
+    float value;
+
+    settle(ZCOR_SETTLE_DELAY_TUNE);
+    char step;
+    LOOP_Z(axis) {
+        if(!readAxisPosition((AxisZEnum)axis, &value)){
+            SERIAL_ECHOLNPGM("Halt tune due to position read error");
+            return false;
+        }
+        if(fabs(height-value) < float(ZCOR_UNIT)/2.0f){
+            step = 0;
+        } else if(height > value) {
+            step = 1;
+        } else {
+            step = -1;
+        }
+        if (step != 0) {
+            *tuned = true;
+            cr.setSteps((AxisZEnum)axis, cr.getSteps((AxisZEnum)axis) + step);
+            break;
+        }
+    }
+
+    // record the results
+    correction.setRequired(height, cr);
+
+    return true;
+}
 void Zcor::store(){
     correction.sdWriteRequired();
 };
@@ -223,8 +255,8 @@ bool Zcor::readAxisPosition(const AxisZEnum axis, float *position) {
     WRITE(ZCOR_SS_PIN, LOW); // enable spi
     delay(100);
     // Request position pos continuously
-    spi.transfer(REQUEST_POSITION_READ((int)axis));
-    if(!spi.waitResponse(REQUEST_POSITION_STATUS,RESPONSE_POSITION_STATUS_OK((int)axis), ZCOR_SPI_TIMEOUT)) {
+    spi.transfer(REQUEST_POSITION_READ(POS_TO_AXIS((int)axis)));
+    if(!spi.waitResponse(REQUEST_POSITION_STATUS,RESPONSE_POSITION_STATUS_OK(POS_TO_AXIS((int)axis)), ZCOR_SPI_TIMEOUT)) {
         SERIAL_ECHOLNPGM("Position request timeout");
         WRITE(ZCOR_SS_PIN, HIGH); // disable spi
         return false;
@@ -265,8 +297,8 @@ bool Zcor::verifyAllAxesAt0() {
 
 // PRIVATE
 
-void Zcor::settle() {
-    unsigned long time = millis() + ZCOR_SETTLE_DELAY;
+void Zcor::settle(const unsigned int d) {
+    unsigned long time = millis() + d;
     while (PENDING(millis(), time)) idle();
 }
 

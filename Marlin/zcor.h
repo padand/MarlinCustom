@@ -31,6 +31,7 @@ class Zcor {
         static void init();
         // return true if probe was successful
         static bool probe(const float height);
+        static bool tune(const float height, bool *tuned);
         static void store();
         static void restore();
         static void correct(const float height);
@@ -40,7 +41,7 @@ class Zcor {
         static bool verifyAllAxesAt0();
 
     private:
-        static void settle();
+        static void settle(const unsigned int d = ZCOR_SETTLE_DELAY);
         static char currentCorrectionSteps[ZZZ];
         static const uint8_t configured_microsteps[];
         static SPI<MISO_PIN, MOSI_PIN, SCK_PIN> spi;
