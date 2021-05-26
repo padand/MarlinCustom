@@ -39,6 +39,10 @@ public:
 
   void initsd();
   void write_command(char *buf);
+  // writes a single byte to the current file; returns true if successful
+  bool write_byte(uint8_t b);
+  // read a single byte from the current file; return true if there is no error and the end was not reached
+  bool read_byte(uint8_t *b);
 
   void beginautostart();
   void checkautostart();

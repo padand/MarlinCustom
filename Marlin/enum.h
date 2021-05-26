@@ -51,6 +51,11 @@ enum AxisEnum : unsigned char {
   NO_AXIS   = 0xFF
 };
 
+enum AxisZEnum : unsigned char {
+  Z1_AXIS   = 0,
+  Z2_AXIS   = 1
+};
+
 #define LOOP_S_LE_N(VAR, S, N) for (uint8_t VAR=S; VAR<=N; VAR++)
 #define LOOP_S_L_N(VAR, S, N) for (uint8_t VAR=S; VAR<N; VAR++)
 #define LOOP_LE_N(VAR, N) LOOP_S_LE_N(VAR, 0, N)
@@ -58,6 +63,7 @@ enum AxisEnum : unsigned char {
 
 #define LOOP_NA(VAR) LOOP_L_N(VAR, NUM_AXIS)
 #define LOOP_XYZ(VAR) LOOP_S_LE_N(VAR, X_AXIS, Z_AXIS)
+#define LOOP_Z(VAR) LOOP_S_LE_N(VAR, Z1_AXIS, Z2_AXIS)
 #define LOOP_XYZE(VAR) LOOP_S_LE_N(VAR, X_AXIS, E_CART)
 #define LOOP_XYZE_N(VAR) LOOP_S_L_N(VAR, X_AXIS, XYZE_N)
 #define LOOP_MOV_AXIS(VAR) LOOP_S_L_N(VAR, A_AXIS, MOV_AXIS)

@@ -35,7 +35,6 @@
  * Equipment options
  */
 //#define LARGE_BED
-#define SDSUPPORT
 //#define CHANGE_Y_DIRECTION        // If your bed homes in the wrong direction (it should move front to back) enable this.
 //#define CHANGE_X_DIRECTION        // If your X carriage homes in the wrong direction (it should move right to left) enable this.
 #define CHANGE_Z_DIRECTION        // If your Z homes in the wrong direction (it should move top to bottom) enable this.
@@ -45,9 +44,10 @@
 #define Z_DUAL_STEPPER_DRIVERS    // Enable this if you have dual Z stepper motors with the second stepper motor
                                     // connected to the next available E plug (usually E1)
 
-#define MOTHERBOARD BOARD_MKS_GEN_13        // Original controller board with built in stepper drivers. Works with MKS BASE 1.3, 1.4
+//#define MOTHERBOARD BOARD_MKS_GEN_13        // Original controller board with built in stepper drivers. Works with MKS BASE 1.3, 1.4
 //#define MOTHERBOARD BOARD_MKS_BASE_15       // MKS v1.5 with Allegro A4982 stepper drivers
 //#define MOTHERBOARD BOARD_MKS_BASE_HEROIC   // MKS BASE 1.0 with Heroic HR4982 stepper drivers
+#define MOTHERBOARD BOARD_MKS_BASE_14_CUSTOM
 //#define MOTHERBOARD BOARD_MKS_GEN_L         // Newer controller board with replacable stepper drivers
 
 /**
@@ -206,6 +206,44 @@
  * Warning: Does not respect endstops!
  */
 #define BABYSTEPPING
+
+/**
+ * Highly experimental !!!
+ * Enable this to activate the Z correction algorithm
+ * Requires BABYSTEPPING to be enabled and dual Z motors on separate drivers
+ * The M13 command used for calibration is a long running command and it may
+ * raise a communication timeout error in your serial interface. Make sure you
+ * configure your serial interface to prevent this. For example, in octoprint,
+ * go to settings > serial connection > firmware & protocol and add the M13
+ * command to the long running commands list.
+ */
+#define Z_STEP_CORRECTION
+#if ENABLED(Z_STEP_CORRECTION)
+  #define ZCOR_ENABLE_DEBUG
+
+  // TODO: test running the SPI at a different speed than the SD or other devices
+  // Until then, make sure to match the SPI speed with the speed used by the SD
+  #define ZCOR_SPI_SPEED SPI_SPEED_EIGHTH
+  #define ZCOR_SPI_TIMEOUT 1500
+
+  // The file in which to store the correction data
+  #define ZCOR_FILENAME "zcor.txt"
+
+  // The minimal correction unit. Should equal the length of a full step
+  #define ZCOR_UNIT 0.00625
+  // The delay (ms) required for an axis to "settle" before reading the value
+  #define ZCOR_SETTLE_DELAY      1000
+  #define ZCOR_SETTLE_DELAY_TUNE 3000
+
+  // TODO: sanity check ZCOR_Z_HEIGHT must be a whole multiple of ZCOR_LAYER_HEIGHT
+  #define ZCOR_LAYER_HEIGHT 0.2
+  #define ZCOR_Z_HEIGHT 100
+  #define ZCOR_CALIBRATE__AT_X 95
+  #define ZCOR_CALIBRATE__AT_Y 95
+
+  #define ZCOR_Z_DRIVERS { 2, 4 }
+  #define ZCOR_RESOLUTION 0.01
+#endif
 
 /**
  * Extra movement of X axis. Can help with probing more of the bed.
@@ -1208,11 +1246,11 @@
 // @section machine
 
 // The size of the print bed
-#define X_BED_SIZE 200
+#define X_BED_SIZE 190
 #if ENABLED(LARGE_BED)
   #define Y_BED_SIZE 280
 #else
-  #define Y_BED_SIZE 200
+  #define Y_BED_SIZE 190
 #endif
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
@@ -1221,7 +1259,7 @@
 #define Z_MIN_POS 0
 #define X_MAX_POS X_BED_SIZE + XTRA_BED_RIGHT
 #define Y_MAX_POS Y_BED_SIZE + XTRA_BED_FRONT
-#define Z_MAX_POS 200
+#define Z_MAX_POS 150
 
 /**
  * Software Endstops
@@ -1810,7 +1848,7 @@
  * you must uncomment the following option or it won't work.
  *
  */
-//#define SDSUPPORT
+#define SDSUPPORT
 
 /**
  * SD CARD: SPI SPEED
@@ -1820,7 +1858,7 @@
  */
 //#define SPI_SPEED SPI_HALF_SPEED
 //#define SPI_SPEED SPI_QUARTER_SPEED
-//#define SPI_SPEED SPI_EIGHTH_SPEED
+#define SPI_SPEED SPI_EIGHTH_SPEED
 
 /**
  * SD CARD: ENABLE CRC

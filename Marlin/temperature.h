@@ -168,7 +168,10 @@ class Temperature {
     #endif
 
     #if ENABLED(BABYSTEPPING)
-      static volatile int babystepsTodo[3];
+      static volatile int babystepsTodo[XYZ];
+      #if ENABLED(Z_STEP_CORRECTION)
+        static volatile int babystepsTodoZ[ZZZ];
+      #endif
     #endif
 
     #if ENABLED(PREVENT_COLD_EXTRUSION)
@@ -535,6 +538,21 @@ class Temperature {
           #endif
         }
       }
+
+      #if ENABLED(Z_STEP_CORRECTION)
+        static void babystep_Zi(const AxisZEnum i, const int16_t distance) {
+          if (TEST(axis_known_position, Z_AXIS)) {
+            babystepsTodoZ[i] += distance;
+          }
+        }
+        static bool babystep_Zi_in_progress() {
+          LOOP_Z(axis) {
+            const int curTodo = babystepsTodoZ[axis];
+            if(curTodo) return true;
+          }
+          return false;
+        }
+      #endif
 
     #endif // BABYSTEPPING
 

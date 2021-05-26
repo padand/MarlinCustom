@@ -260,6 +260,7 @@
 #include "ultralcd.h"
 #include "planner.h"
 #include "stepper.h"
+#include "zcor.h"
 #include "endstops.h"
 #include "temperature.h"
 #include "cardreader.h"
@@ -3449,6 +3450,13 @@ inline void gcode_G0_G1(
         SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
       }
     #endif
+
+    #if ENABLED(Z_STEP_CORRECTION)
+      if (parser.seenval('Z')){
+        planner.synchronize();
+        zcor.correct(current_position[Z_AXIS]);
+      }
+    #endif
   }
 }
 
@@ -4432,6 +4440,12 @@ inline void gcode_G28(const bool always_home_all) {
     #endif
     if (_HOME_SYNC)
       SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
+  #endif
+
+  #if ENABLED(Z_STEP_CORRECTION)
+    if (home_all || homeZ) {
+      zcor.reset();
+    }
   #endif
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -6870,6 +6884,116 @@ void report_xyz_from_stepper_position() {
   }
 
 #endif // SPINDLE_LASER_ENABLE
+
+/**
+ * M13: Z step correction
+ */
+#if ENABLED(Z_STEP_CORRECTION)
+
+  enum z_correction_schedule_types : char {
+    ZCOR_SCHEDULE_PROBE    = 2,
+    ZCOR_SCHEDULE_TUNE     = 3,
+    ZCOR_SCHEDULE_STORE    = 4,
+    ZCOR_SCHEDULE_RESTORE  = 0
+  };
+  bool z_correction_schedule = false;
+  char z_correction_schedule_type;
+
+  inline void gcode_M13() {
+    if (parser.seenval('T')) {
+      const uint8_t tValue = parser.value_int();
+      if(tValue > 0 && tValue <= ZZZ) {
+        float value;
+        if(zcor.readAxisPosition((AxisZEnum)(tValue-1), &value)){
+            SERIAL_ECHOLNPAIR("Got value: ", value);
+        } else {
+            SERIAL_ECHOLNPGM("Position read error");
+        }
+      } else {
+        SERIAL_ECHOLNPGM("Invalid T value");
+      }
+    } else if(parser.seenval('S')){
+      const uint8_t sValue = parser.value_int();
+      if (sValue == 1) {
+        SERIAL_ECHOLNPGM("Make sure that each Z axis is in it's origin position, then turn on calipers at 0.00");
+        enqueue_and_echo_commands_P(PSTR("G91\nG28 X0 Y0\nG1 X" STRINGIFY(ZCOR_CALIBRATE__AT_X) " Y" STRINGIFY(ZCOR_CALIBRATE__AT_Y) " F6000\nG28 Z0\nG90"));
+      } else if (sValue == 2 && IsRunning()) {
+        z_correction_schedule = true;
+        z_correction_schedule_type = ZCOR_SCHEDULE_PROBE;
+      } else if (sValue == 3 && IsRunning()) {
+        z_correction_schedule = true;
+        z_correction_schedule_type = ZCOR_SCHEDULE_TUNE;
+      } else if (sValue == 4) {
+        z_correction_schedule = true;
+        z_correction_schedule_type = ZCOR_SCHEDULE_STORE;
+      } else if (sValue == 0) {
+        z_correction_schedule = true;
+        z_correction_schedule_type = ZCOR_SCHEDULE_RESTORE;
+      }
+    } else {
+      // usage
+      SERIAL_ECHOLNPGM("M13 T[1-9] : Z correction test; prints the position of the axis identified by T");
+      SERIAL_ECHOLNPGM("M13 S1 : Stage 1 of Z correction. Moves the XY to bed center and homes Z. After that, you need to make sure that each Z axis is in it's origin position and turn on the calipers at 0.00");
+      SERIAL_ECHOLNPGM("M13 S2 : Stage 2 of Z correction. Runs the correction algorithm up to height ZCOR_Z_HEIGHT (" STRINGIFY(ZCOR_Z_HEIGHT) ") for a layer height ZCOR_LAYER_HEIGHT (" STRINGIFY(ZCOR_LAYER_HEIGHT) "). Send any command to cancel (the probed values will still remain in RAM).");
+      SERIAL_ECHOLNPGM("M13 S3 : Stage 3 of Z correction. Fine tune. Do a full pass and record only a single small adjustment at each height, without actually applying it. Report the number of tuned values. Run this as many times as needed, each time the tuned values count should drop down.");
+      SERIAL_ECHOLNPGM("M13 S4 : Stage 4 of Z correction. Store the correction data to SD card");
+      SERIAL_ECHOLNPGM("M13 S0 : Restore the correction data from SD card");
+    }
+  }
+
+  inline void probe_z_correction(const bool tune = false) {
+    uint16_t count = 0;
+    bool wasTuned = false;
+    if(!zcor.verifyAllAxesAt0()) {
+      SERIAL_ECHOLNPGM("Make sure that both calipers show 0 at Z height 0");
+      return;
+    }
+    // set position to absolute (g90)
+    relative_mode = false;
+    // set movement speed
+    feedrate_mm_s = MMM_TO_MMS(200.0f);
+    // loop over each layer
+    float height;
+    for(int z=0; z<=round(float(ZCOR_Z_HEIGHT)/float(ZCOR_RESOLUTION)); z+=round(float(ZCOR_LAYER_HEIGHT)/float(ZCOR_RESOLUTION))) {
+      if(commands_in_queue) {
+        break;
+      }
+      height = float(z) * float(ZCOR_RESOLUTION);
+      SERIAL_ECHOLNPAIR("Move to Z: ", height);
+      destination[Z_AXIS] = LOGICAL_TO_NATIVE(height, Z_AXIS);
+      prepare_move_to_destination();
+      planner.synchronize();
+      wasTuned = false;
+      if (tune) {
+        wasTuned = false;
+        zcor.correct(height);
+        if(!zcor.tune(height, &wasTuned)) {
+          break;
+        }
+        if(wasTuned) count ++;
+      } else if(!zcor.probe(height)) {
+        break;
+      }
+    }
+    if (commands_in_queue) {
+      SERIAL_ECHOLNPGM("CANCELLED (got an incomming command)");
+    } else {
+      SERIAL_ECHOLNPGM("DONE");
+      if (tune) {
+        SERIAL_ECHOLNPAIR("Tune count: ", count);
+      }
+    }
+  }
+
+  inline void store_z_correction() {
+    zcor.store();
+  }
+
+  inline void restore_z_correction() {
+    zcor.restore();
+  }
+
+#endif
 
 /**
  * M17: Enable power on all stepper motors
@@ -9993,9 +10117,14 @@ inline void gcode_M226() {
     }
   #endif
 
+  #if ENABLED(Z_STEP_CORRECTION)
+    const uint8_t zcor_z_drivers[] = ZCOR_Z_DRIVERS;
+  #endif
+
   /**
    * M290: Babystepping
    */
+  static const uint8_t configured_microsteps[] = MICROSTEP_MODES;
   inline void gcode_M290() {
     #if ENABLED(BABYSTEP_XY)
       for (uint8_t a = X_AXIS; a <= Z_AXIS; a++)
@@ -10008,10 +10137,26 @@ inline void gcode_M226() {
         }
     #else
       if (parser.seenval('Z') || parser.seenval('S')) {
-        const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
-        thermalManager.babystep_axis(Z_AXIS, offs * planner.axis_steps_per_mm[Z_AXIS]);
-        #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-          if (!parser.seen('P') || parser.value_bool()) mod_zprobe_zoffset(offs);
+        #if !ENABLED(Z_STEP_CORRECTION)
+          const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
+          thermalManager.babystep_axis(Z_AXIS, offs * planner.axis_steps_per_mm[Z_AXIS]);
+          #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+            if (!parser.seen('P') || parser.value_bool()) mod_zprobe_zoffset(offs);
+          #endif
+        #else
+          const int16_t steps = constrain(parser.value_int(), -1, 1);
+          SERIAL_ECHOLNPAIR("Babystep Z: ", steps);
+          if(parser.seenval('I')) {
+            const uint8_t i = constrain(parser.value_int(), 0, int(COUNT(zcor_z_drivers) - 1));
+            SERIAL_ECHOLNPAIR("Babystep I: ", i);
+            stepper.microstep_mode(zcor_z_drivers[i], 1);
+            delay(50); // give the driver a little time to process, just to be safe
+            thermalManager.babystep_Zi((AxisZEnum)i, steps);
+            while(thermalManager.babystep_Zi_in_progress()) idle();
+            stepper.microstep_mode(zcor_z_drivers[i], configured_microsteps[zcor_z_drivers[i]]);
+          } else {
+            SERIAL_ECHOLNPGM("With Z_STEP_CORRECTION, babystep must be used per each Z axis individually, only at calibration time");
+          }
         #endif
       }
     #endif
@@ -12731,6 +12876,10 @@ void process_parsed_command() {
         case 5: gcode_M5(); break;                                // M5: Laser/Spindle OFF
       #endif
 
+      #if ENABLED(Z_STEP_CORRECTION)
+        case 13: gcode_M13(); break;
+      #endif
+
       case 17: gcode_M17(); break;                                // M17: Enable all steppers
 
       #if ENABLED(SDSUPPORT)
@@ -15109,6 +15258,10 @@ void setup() {
     update_case_light();
   #endif
 
+  #if ENABLED(Z_STEP_CORRECTION)
+    zcor.init();
+  #endif
+
   #if ENABLED(SPINDLE_LASER_ENABLE)
     OUT_WRITE(SPINDLE_LASER_ENABLE_PIN, !SPINDLE_LASER_ENABLE_INVERT);  // init spindle to off
     #if SPINDLE_DIR_CHANGE
@@ -15294,6 +15447,24 @@ void loop() {
     }
 
   #endif // SDSUPPORT
+
+  #if ENABLED(Z_STEP_CORRECTION)
+    if(z_correction_schedule) {
+      z_correction_schedule = false;
+      switch (z_correction_schedule_type) {
+        case ZCOR_SCHEDULE_PROBE:
+          probe_z_correction(); break;
+        case ZCOR_SCHEDULE_TUNE:
+          probe_z_correction(true); break;
+        case ZCOR_SCHEDULE_STORE:
+          store_z_correction(); break;
+        case ZCOR_SCHEDULE_RESTORE:
+          restore_z_correction(); break;
+      }
+    }
+    
+
+  #endif
 
   if (commands_in_queue < BUFSIZE) get_available_commands();
 

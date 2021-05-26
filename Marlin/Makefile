@@ -160,6 +160,8 @@ else ifeq ($(HARDWARE_MOTHERBOARD),40)
 else ifeq ($(HARDWARE_MOTHERBOARD),405)
 # MKS BASE 1.0 with Heroic HR4982 stepper drivers
 else ifeq ($(HARDWARE_MOTHERBOARD),41)
+# MKS BASE 1.4 with Heroic HR4982 stepper drivers and reassigned pins
+else ifeq ($(HARDWARE_MOTHERBOARD),13)
 # MKS GEN v1.3 or 1.4
 else ifeq ($(HARDWARE_MOTHERBOARD),47)
 # MKS GEN L
