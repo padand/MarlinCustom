@@ -238,8 +238,8 @@
   // TODO: sanity check ZCOR_Z_HEIGHT must be a whole multiple of ZCOR_LAYER_HEIGHT
   #define ZCOR_LAYER_HEIGHT 0.2
   #define ZCOR_Z_HEIGHT 100
-  #define ZCOR_CALIBRATE__AT_X 95
-  #define ZCOR_CALIBRATE__AT_Y 95
+  #define ZCOR_CALIBRATE__AT_X 110
+  #define ZCOR_CALIBRATE__AT_Y 110
 
   #define ZCOR_Z_DRIVERS { 2, 4 }
   #define ZCOR_RESOLUTION 0.01
