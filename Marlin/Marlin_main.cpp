@@ -6896,8 +6896,14 @@ void report_xyz_from_stepper_position() {
     ZCOR_SCHEDULE_STORE    = 4,
     ZCOR_SCHEDULE_RESTORE  = 0
   };
-  bool z_correction_schedule = false;
-  char z_correction_schedule_type;
+
+  struct zCorrectionSchedule {
+    bool isScheduled = false;
+    z_correction_schedule_types scheduleType;
+    uint8_t cycles = 1;
+  };
+
+  zCorrectionSchedule z_correction_schedule;
 
   inline void gcode_M13() {
     if (parser.seenval('T')) {
@@ -6918,30 +6924,36 @@ void report_xyz_from_stepper_position() {
         SERIAL_ECHOLNPGM("Make sure that each Z axis is in it's origin position, then turn on calipers at 0.00");
         enqueue_and_echo_commands_P(PSTR("G91\nG28 X0 Y0\nG1 X" STRINGIFY(ZCOR_CALIBRATE__AT_X) " Y" STRINGIFY(ZCOR_CALIBRATE__AT_Y) " F6000\nG28 Z0\nG90"));
       } else if (sValue == 2 && IsRunning()) {
-        z_correction_schedule = true;
-        z_correction_schedule_type = ZCOR_SCHEDULE_PROBE;
+        z_correction_schedule.isScheduled = true;
+        z_correction_schedule.scheduleType = ZCOR_SCHEDULE_PROBE;
       } else if (sValue == 3 && IsRunning()) {
-        z_correction_schedule = true;
-        z_correction_schedule_type = ZCOR_SCHEDULE_TUNE;
+        if(parser.seenval('C')) {
+          z_correction_schedule.cycles = parser.value_int();
+        } else {
+          z_correction_schedule.cycles = 1;
+        }
+        SERIAL_ECHOLNPAIR("Tune read cycles: ", z_correction_schedule.cycles);
+        z_correction_schedule.isScheduled = true;
+        z_correction_schedule.scheduleType = ZCOR_SCHEDULE_TUNE;
       } else if (sValue == 4) {
-        z_correction_schedule = true;
-        z_correction_schedule_type = ZCOR_SCHEDULE_STORE;
+        z_correction_schedule.isScheduled = true;
+        z_correction_schedule.scheduleType = ZCOR_SCHEDULE_STORE;
       } else if (sValue == 0) {
-        z_correction_schedule = true;
-        z_correction_schedule_type = ZCOR_SCHEDULE_RESTORE;
+        z_correction_schedule.isScheduled = true;
+        z_correction_schedule.scheduleType = ZCOR_SCHEDULE_RESTORE;
       }
     } else {
       // usage
       SERIAL_ECHOLNPGM("M13 T[1-9] : Z correction test; prints the position of the axis identified by T");
       SERIAL_ECHOLNPGM("M13 S1 : Stage 1 of Z correction. Moves the XY to bed center and homes Z. After that, you need to make sure that each Z axis is in it's origin position and turn on the calipers at 0.00");
       SERIAL_ECHOLNPGM("M13 S2 : Stage 2 of Z correction. Runs the correction algorithm up to height ZCOR_Z_HEIGHT (" STRINGIFY(ZCOR_Z_HEIGHT) ") for a layer height ZCOR_LAYER_HEIGHT (" STRINGIFY(ZCOR_LAYER_HEIGHT) "). Send any command to cancel (the probed values will still remain in RAM).");
-      SERIAL_ECHOLNPGM("M13 S3 : Stage 3 of Z correction. Fine tune. Do a full pass and record only a single small adjustment at each height, without actually applying it. Report the number of tuned values. Run this as many times as needed, each time the tuned values count should drop down.");
+      SERIAL_ECHOLNPGM("M13 S3 C1 : Stage 3 of Z correction. Fine tune. Do a full pass and record only a single small adjustment at each height, without actually applying it. Report the number of tuned values. Run this as many times as needed, each time the tuned values count should drop down. Specify how many read cycles to take for each axis value using the C param (defaults to 1)");
       SERIAL_ECHOLNPGM("M13 S4 : Stage 4 of Z correction. Store the correction data to SD card");
       SERIAL_ECHOLNPGM("M13 S0 : Restore the correction data from SD card");
     }
   }
 
-  inline void probe_z_correction(const bool tune = false) {
+  inline void probe_z_correction(const bool tune = false, const uint8_t cycles = 1) {
     uint16_t count = 0;
     bool wasTuned = false;
     if(!zcor.verifyAllAxesAt0()) {
@@ -6967,7 +6979,7 @@ void report_xyz_from_stepper_position() {
       if (tune) {
         wasTuned = false;
         zcor.correct(height);
-        if(!zcor.tune(height, &wasTuned)) {
+        if(!zcor.tune(height, cycles, &wasTuned)) {
           break;
         }
         if(wasTuned) count ++;
@@ -15449,13 +15461,13 @@ void loop() {
   #endif // SDSUPPORT
 
   #if ENABLED(Z_STEP_CORRECTION)
-    if(z_correction_schedule) {
-      z_correction_schedule = false;
-      switch (z_correction_schedule_type) {
+    if(z_correction_schedule.isScheduled) {
+      z_correction_schedule.isScheduled = false;
+      switch (z_correction_schedule.scheduleType) {
         case ZCOR_SCHEDULE_PROBE:
           probe_z_correction(); break;
         case ZCOR_SCHEDULE_TUNE:
-          probe_z_correction(true); break;
+          probe_z_correction(true, z_correction_schedule.cycles); break;
         case ZCOR_SCHEDULE_STORE:
           store_z_correction(); break;
         case ZCOR_SCHEDULE_RESTORE:

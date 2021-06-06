@@ -198,20 +198,29 @@ bool Zcor::probe(const float height) {
 
     return true;
 }
-bool Zcor::tune(const float height, bool *tuned) {
+bool Zcor::tune(const float height, const uint8_t cycles, bool *tuned) {
     CorrectionRequired cr = correction.getRequired(height);
     float value;
 
     settle(ZCOR_SETTLE_DELAY_TUNE);
     char step;
     LOOP_Z(axis) {
-        if(!readAxisPosition((AxisZEnum)axis, &value)){
-            SERIAL_ECHOLNPGM("Halt tune due to position read error");
-            return false;
+        float averageValue = 0.0f;
+        uint8_t cycle = 0;
+        while(cycle < cycles) {
+            if(!readAxisPosition((AxisZEnum)axis, &value)){
+                SERIAL_ECHOLNPGM("Halt tune due to position read error");
+                return false;
+            }
+            averageValue += value;
+            cycle ++;
+            if(cycle < cycles) settle(ZCOR_SETTLE_DELAY_TUNE_CYCLE);
         }
-        if(fabs(height-value) < float(ZCOR_UNIT)/2.0f){
+        averageValue = averageValue / float(cycles);
+        
+        if(fabs(height-averageValue) < float(ZCOR_UNIT)/2.0f){
             step = 0;
-        } else if(height > value) {
+        } else if(height > averageValue) {
             step = 1;
         } else {
             step = -1;
@@ -219,6 +228,8 @@ bool Zcor::tune(const float height, bool *tuned) {
         if (step != 0) {
             *tuned = true;
             cr.setSteps((AxisZEnum)axis, cr.getSteps((AxisZEnum)axis) + step);
+            SERIAL_ECHOLNPAIR("Tune axis: ", axis);
+            SERIAL_ECHOLNPAIR("step: ", step);
             break;
         }
     }
