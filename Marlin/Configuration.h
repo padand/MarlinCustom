@@ -236,6 +236,8 @@
   #define ZCOR_SETTLE_DELAY_TUNE       3000
   #define ZCOR_SETTLE_DELAY_TUNE_CYCLE 300
 
+  #define ZCOR_DEFAULT_TUNE_CYCLES 3
+
   // TODO: sanity check ZCOR_Z_HEIGHT must be a whole multiple of ZCOR_LAYER_HEIGHT
   #define ZCOR_LAYER_HEIGHT 0.2
   #define ZCOR_Z_HEIGHT 100
