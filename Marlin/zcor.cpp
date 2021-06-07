@@ -214,7 +214,7 @@ bool Zcor::tune(const float height, const uint8_t cycles, bool *tuned) {
             }
             if(fabs(height-value) < fabs(height-closestValue))  closestValue = value;
             cycle ++;
-            if(cycle < cycles) settle(ZCOR_SETTLE_DELAY_TUNE_CYCLE);
+            if(cycle < cycles) idle();
         }
         
         if(fabs(height-closestValue) < float(ZCOR_UNIT)/2.0f){

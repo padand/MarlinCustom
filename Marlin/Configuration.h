@@ -234,7 +234,6 @@
   // The delay (ms) required for an axis to "settle" before reading the value
   #define ZCOR_SETTLE_DELAY            1000
   #define ZCOR_SETTLE_DELAY_TUNE       3000
-  #define ZCOR_SETTLE_DELAY_TUNE_CYCLE 300
 
   #define ZCOR_DEFAULT_TUNE_CYCLES 3
 
