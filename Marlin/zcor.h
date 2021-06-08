@@ -31,7 +31,8 @@ class Zcor {
         static void init();
         // return true if probe was successful
         static bool probe(const float height);
-        static bool tune(const float height, bool *tuned);
+        // return true if tune was successful
+        static bool tune(const float height, const uint8_t cycles, bool *tuned);
         static void store();
         static void restore();
         static void correct(const float height);
