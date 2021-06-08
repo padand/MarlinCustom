@@ -205,21 +205,21 @@ bool Zcor::tune(const float height, const uint8_t cycles, bool *tuned) {
     settle(ZCOR_SETTLE_DELAY_TUNE);
     char step;
     LOOP_Z(axis) {
-        float closestValue = height + 100.0f;
         uint8_t cycle = 0;
-        while(cycle < cycles) {
+        bool isTuned = false;
+        while(cycle < cycles && !isTuned) {
             if(!readAxisPosition((AxisZEnum)axis, &value)){
                 SERIAL_ECHOLNPGM("Halt tune due to position read error");
                 return false;
             }
-            if(fabs(height-value) < fabs(height-closestValue))  closestValue = value;
+            if(fabs(height-value) < float(ZCOR_UNIT)/2.0f) isTuned = true;
             cycle ++;
             if(cycle < cycles) idle();
         }
-        
-        if(fabs(height-closestValue) < float(ZCOR_UNIT)/2.0f){
+
+        if(isTuned){
             step = 0;
-        } else if(height > closestValue) {
+        } else if(height > value) {
             step = 1;
         } else {
             step = -1;
