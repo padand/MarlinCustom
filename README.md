@@ -10,7 +10,7 @@ It also includes changes from a Marlin fork:
 
 https://github.com/JimBrown/MarlinTarantula
 
-The most radical modification is a Z position correction algorithm that uses Digital ReadOut (DRO) probing to establish the real position and correct by it. The DRO device consists out of modified digital calipers and a specially designed circuit board. These are not documented yet, once they are this readme will be updated.
+The most radical modification is a Z position correction algorithm that uses Digital ReadOut (DRO) probing to establish the real position and correct by it. The DRO device consists out of modified digital calipers and a specially designed Arduino shield that runs a program called zcor (https://github.com/padand/zcor). These are not documented yet, once they are this readme will be updated.
 
 The software is modified for my personal 3D printer. Although integration with other printers was always a design target, it has not been actually tested on any other printer so far. The lack of proper testing and documentation makes this a HIGHLY EXPERIMENTAL FEATURE. Use at your own risk, I take zero responsibility.
 
