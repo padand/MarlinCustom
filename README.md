@@ -1,21 +1,18 @@
 ============================================================================
 
-__Configured for MY Tevo Tarantula. It works for me, it may not work for you!__
+IMPORTANT NOTICE:
 
-Open configuration.h file in a text editor and make the changes at the top (EasyConfig)
-section of the file. You should not have to make any other changes.
+This software is based on Marlin 1.1.x and released under the original license:
 
-See [this video](https://youtu.be/-sQ8p00pG5E) for an excellent tutorial on using this firmware.
-(NOTE: It is no longer necessary to copy the configuration files from the example configurations folder.)
+https://github.com/MarlinFirmware/Marlin
 
-Do you have a configuration for the Tarantula that is not covered in the EasyConfig? Would
-you like to share it with others by having it added to the EasyConfig?
-If so, please contact me at jb.github (at) rcairgallery (dot) com and we'll work something
-out. (Note: Please do not contact me for support questions. I'm afraid I just do not have
-the time for answering such inquiries. Best bet is to ask in the Tevo Tarantuala
-Facebook group at https://www.facebook.com/groups/TEVO.3dprinter.owners/.)
+It also includes changes from a Marlin fork:
 
-Thanks!
+https://github.com/JimBrown/MarlinTarantula
+
+The most radical modification is a Z position correction algorithm that uses Digital ReadOut (DRO) probing to establish the real position and correct by it. The DRO device consists out of modified digital calipers and a specially designed circuit board. These are not documented yet, once they are this readme will be updated.
+
+The software is modified for my personal 3D printer. Although integration with other printers was always a design target, it has not been actually tested on any other printer so far. The lack of proper testing and documentation makes this a HIGHLY EXPERIMENTAL FEATURE. Use at your own risk, I take zero responsibility.
 
 ============================================================================
 
