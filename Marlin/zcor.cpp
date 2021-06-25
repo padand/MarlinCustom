@@ -2,19 +2,9 @@
 #include "temperature.h"
 #include "cardreader.h"
 
+#if ENABLED(Z_STEP_CORRECTION)
+
 Zcor zcor; // singleton
-
-#ifndef ZCOR_SS_PIN
-    #define ZCOR_SS_PIN 0
-#endif
-
-#ifndef ZCOR_SPI_TIMEOUT
-    #define ZCOR_SPI_TIMEOUT 1500
-#endif
-
-#ifndef ZCOR_SPI_SPEED
-    #define ZCOR_SPI_SPEED SPI_SPEED_EIGHTH
-#endif
 
 #ifdef ZCOR_ENABLE_DEBUG
   #define DEBUG_MSG(msg) SERIAL_ECHOLNPGM(msg)
@@ -321,3 +311,5 @@ SPI<MISO_PIN, MOSI_PIN, SCK_PIN> Zcor::spi;
 AxisValueParser Zcor::avp;
 
 Correction Zcor::correction;
+
+#endif // Z_STEP_CORRECTION

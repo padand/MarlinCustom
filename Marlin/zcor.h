@@ -6,6 +6,8 @@
 #include <axis_value_parser.h>
 #include <zcor_protocol.h>
 
+#if ENABLED(Z_STEP_CORRECTION)
+
 class CorrectionRequired {
     public:
         char getSteps(AxisZEnum axis);
@@ -51,5 +53,7 @@ class Zcor {
 };
 
 extern Zcor zcor;
+
+#endif // Z_STEP_CORRECTION
 
 #endif // ZCOR_H
