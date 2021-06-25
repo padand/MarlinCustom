@@ -478,6 +478,8 @@ static_assert(X_MAX_LENGTH >= X_BED_SIZE && Y_MAX_LENGTH >= Y_BED_SIZE,
   #elif ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY) && !ENABLED(BABYSTEP_ZPROBE_OFFSET)
     #error "BABYSTEP_ZPROBE_GFX_OVERLAY requires a BABYSTEP_ZPROBE_OFFSET."
   #endif
+  constexpr int z_drivers[] = BABYSTEPPING_Z_DRIVERS;
+  static_assert(COUNT(z_drivers) == ZZZ, "BABYSTEPPING_Z_DRIVERS needs to contain " STRINGIFY(ZZZ) " drivers, one for each Z axis");
 #endif
 
 /**
@@ -493,8 +495,6 @@ static_assert(X_MAX_LENGTH >= X_BED_SIZE && Y_MAX_LENGTH >= Y_BED_SIZE,
   #elif ZCOR_Z_HEIGHT > Z_MAX_POS
     #error "ZCOR_Z_HEIGHT exceeds machine limit"
   #endif
-  constexpr int z_drivers[] = ZCOR_Z_DRIVERS;
-  static_assert(COUNT(z_drivers) == ZZZ, "ZCOR_Z_DRIVERS needs to contain " STRINGIFY(ZZZ) " drivers, one for each Z axis");
 #endif
 
 /**

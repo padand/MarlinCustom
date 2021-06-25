@@ -10129,8 +10129,8 @@ inline void gcode_M226() {
     }
   #endif
 
-  #if ENABLED(Z_STEP_CORRECTION)
-    const uint8_t zcor_z_drivers[] = ZCOR_Z_DRIVERS;
+  #if ENABLED(BABYSTEPPING)
+    const uint8_t babystep_z_drivers[] = BABYSTEPPING_Z_DRIVERS;
   #endif
 
   /**
@@ -10148,27 +10148,23 @@ inline void gcode_M226() {
           #endif
         }
     #else
-      if (parser.seenval('Z') || parser.seenval('S')) {
-        #if !ENABLED(Z_STEP_CORRECTION)
-          const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
-          thermalManager.babystep_axis(Z_AXIS, offs * planner.axis_steps_per_mm[Z_AXIS]);
-          #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-            if (!parser.seen('P') || parser.value_bool()) mod_zprobe_zoffset(offs);
-          #endif
-        #else
+      if(parser.seenval('A')) { // single axis step
+        const uint8_t a = constrain(parser.value_int(), 0, int(COUNT(babystep_z_drivers) - 1));
+        if (parser.seenval('Z')) {
           const int16_t steps = constrain(parser.value_int(), -1, 1);
           SERIAL_ECHOLNPAIR("Babystep Z: ", steps);
-          if(parser.seenval('I')) {
-            const uint8_t i = constrain(parser.value_int(), 0, int(COUNT(zcor_z_drivers) - 1));
-            SERIAL_ECHOLNPAIR("Babystep I: ", i);
-            stepper.microstep_mode(zcor_z_drivers[i], 1);
-            delay(50); // give the driver a little time to process, just to be safe
-            thermalManager.babystep_Zi((AxisZEnum)i, steps);
-            while(thermalManager.babystep_Zi_in_progress()) idle();
-            stepper.microstep_mode(zcor_z_drivers[i], configured_microsteps[zcor_z_drivers[i]]);
-          } else {
-            SERIAL_ECHOLNPGM("With Z_STEP_CORRECTION, babystep must be used per each Z axis individually, only at calibration time");
-          }
+          SERIAL_ECHOLNPAIR("Babystep axis: ", a);
+          stepper.microstep_mode(babystep_z_drivers[a], 1);
+          delay(50); // give the driver a little time to process, just to be safe
+          thermalManager.babystep_Zi((AxisZEnum)a, steps);
+          while(thermalManager.babystep_Zi_in_progress()) idle();
+          stepper.microstep_mode(babystep_z_drivers[a], configured_microsteps[babystep_z_drivers[a]]);
+        }
+      } else if (parser.seenval('Z') || parser.seenval('S')) { // all axis step
+        const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
+        thermalManager.babystep_axis(Z_AXIS, offs * planner.axis_steps_per_mm[Z_AXIS]);
+        #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+          if (!parser.seen('P') || parser.value_bool()) mod_zprobe_zoffset(offs);
         #endif
       }
     #endif

@@ -200,12 +200,18 @@
 //#define SOFT_PWM
 
 /**
+ * Highly experimental !!!
+ * Modified in order to be able to babystep each axis individually
+ * 
  * Enable this to provide a realtime control over the head position via the LCD menu system that works while printing.
  * Using it, one can tune the z-position while printing the first layer.
  *
  * Warning: Does not respect endstops!
  */
 #define BABYSTEPPING
+#if ENABLED(BABYSTEPPING)
+  #define BABYSTEPPING_Z_DRIVERS { 2, 4 }
+#endif
 
 /**
  * Highly experimental !!!
@@ -217,7 +223,7 @@
  * go to settings > serial connection > firmware & protocol and add the M13
  * command to the long running commands list.
  */
-#define Z_STEP_CORRECTION
+//#define Z_STEP_CORRECTION
 #if ENABLED(Z_STEP_CORRECTION)
   #define ZCOR_ENABLE_DEBUG
 
@@ -243,7 +249,6 @@
   #define ZCOR_CALIBRATE__AT_X 110
   #define ZCOR_CALIBRATE__AT_Y 110
 
-  #define ZCOR_Z_DRIVERS { 2, 4 }
   #define ZCOR_RESOLUTION 0.01
 #endif
 

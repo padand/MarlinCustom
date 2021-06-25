@@ -418,9 +418,7 @@ class Stepper {
 
     #if ENABLED(BABYSTEPPING)
       static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
-      #if ENABLED(Z_STEP_CORRECTION)
-        static void babystepZi(const AxisZEnum i, const bool direction);
-      #endif
+      static void babystepZi(const AxisZEnum i, const bool direction);
     #endif
 
     #if HAS_MOTOR_CURRENT_PWM

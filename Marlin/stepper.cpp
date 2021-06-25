@@ -2373,27 +2373,25 @@ void Stepper::report_positions() {
     sei();
   }
 
-  #if ENABLED(Z_STEP_CORRECTION)
-    // MUST ONLY BE CALLED BY AN ISR,
-    // No other ISR should ever interrupt this!
-    void Stepper::babystepZi(const AxisZEnum i, const bool direction) {
-      cli();
+  // MUST ONLY BE CALLED BY AN ISR,
+  // No other ISR should ever interrupt this!
+  void Stepper::babystepZi(const AxisZEnum i, const bool direction) {
+    cli();
 
-      switch (i){
-        case Z1_AXIS:
-          BABYSTEP_AXIS(Z1, BABYSTEP_INVERT_Z, direction);
-          break;
+    switch (i){
+      case Z1_AXIS:
+        BABYSTEP_AXIS(Z1, BABYSTEP_INVERT_Z, direction);
+        break;
 
-        case Z2_AXIS:
-          BABYSTEP_AXIS(Z2, BABYSTEP_INVERT_Z, direction);
-          break;
-        
-        default: break;
-      }
-
-      sei();
+      case Z2_AXIS:
+        BABYSTEP_AXIS(Z2, BABYSTEP_INVERT_Z, direction);
+        break;
+      
+      default: break;
     }
-  #endif
+
+    sei();
+  }
 
 #endif // BABYSTEPPING
 
